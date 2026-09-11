@@ -9,7 +9,7 @@
             android:text="J.A.R.V.I.S. / AI CONTROL CENTER" android:textColor="@color/white"
             android:textSize="20sp" android:textStyle="bold"/>
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:text="Pilih provider → endpoint & model otomatis"
+            android:text="Pilih provider → endpoint &amp; model otomatis"
             android:textColor="@color/text_dim" android:layout_marginTop="4dp"/>
 
         <AutoCompleteTextView android:id="@+id/spPreset"
