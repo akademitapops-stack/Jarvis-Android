@@ -63,6 +63,7 @@ public class MainActivity extends AppCompatActivity {
     private EditText etInput;
     private ImageButton btnSend, btnMic;
     private TextView tvStatus;
+    private com.google.android.material.button.MaterialButton btnMode;
     private RecyclerView rv;
 
     private AIManager ai;
@@ -86,7 +87,7 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setTitle("J.A.R.V.I.S.");
-            getSupportActionBar().setSubtitle("Hermes Agent Core v2.4 TITAN");
+            getSupportActionBar().setSubtitle("Hermes Agent Core v2.5 TITAN");
         }
 
         rv = findViewById(R.id.rvChat);
@@ -94,6 +95,7 @@ public class MainActivity extends AppCompatActivity {
         btnSend = findViewById(R.id.btnSend);
         btnMic = findViewById(R.id.btnMic);
         tvStatus = findViewById(R.id.tvStatus);
+        btnMode = findViewById(R.id.btnMode);
 
         findViewById(R.id.quickDashboard).setOnClickListener(v -> startActivity(new Intent(this, DashboardActivity.class)));
         findViewById(R.id.quickVision).setOnClickListener(v -> startActivity(new Intent(this, CameraVisionActivity.class)));
@@ -102,6 +104,15 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.quickSettings).setOnClickListener(v -> startActivity(new Intent(this, SettingsActivity.class)));
 
         prefs = new PrefsManager(this);
+        refreshModeButton();
+        btnMode.setOnClickListener(v -> {
+            prefs.agentMode(!prefs.agentMode());
+            refreshModeButton();
+            updateStatus();
+            adapter.add(new Message(prefs.agentMode()
+                    ? "⚡ Agent mode AKTIF — model yang sama dapat menjalankan tools/tugas agent."
+                    : "💬 Chat mode AKTIF — model yang sama digunakan tanpa eksekusi tools.", Message.INFO));
+        });
         terminal = TerminalExecutor.get();
         memory = new MemoryBank(this);
         ai = new AIManager(this, memory);
@@ -191,7 +202,7 @@ public class MainActivity extends AppCompatActivity {
         adapter.add(new Message(
                 "╔═══════════════════════════════╗\n"
                 + "║   🤖 J.A.R.V.I.S. ONLINE      ║\n"
-                + "║   Hermes Agent Core v2.4 TITAN      ║\n"
+                + "║   Hermes Agent Core v2.5 TITAN      ║\n"
                 + "╚═══════════════════════════════╝\n\n"
                 + "Root: " + (terminal.hasRoot() ? "✅ YA" : "❌ TIDAK") + "\n"
                 + "Model: " + prefs.model() + "\n"
@@ -215,8 +226,20 @@ public class MainActivity extends AppCompatActivity {
                 + " | " + prefs.model()
                 + (ai.isConfigured() ? "" : " | ⚠️ NO KEY");
         tvStatus.setText(s);
+        if (btnMode != null) refreshModeButton();
         tvStatus.setTextColor(ContextCompat.getColor(this,
                 terminal.hasRoot() ? R.color.green : R.color.orange));
+    }
+
+    private void refreshModeButton() {
+        if (btnMode == null || prefs == null) return;
+        if (prefs.agentMode()) {
+            btnMode.setText("⚡ AGENT");
+            btnMode.setContentDescription("Agent mode aktif");
+        } else {
+            btnMode.setText("💬 CHAT");
+            btnMode.setContentDescription("Chat mode aktif");
+        }
     }
 
     private void send() {

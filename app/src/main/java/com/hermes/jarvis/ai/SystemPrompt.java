@@ -3,6 +3,11 @@ package com.hermes.jarvis.ai;
 public class SystemPrompt {
 
     public static String build(String context, String memories) {
+        return build(context, memories, true);
+    }
+
+    public static String build(String context, String memories, boolean agentMode) {
+        if (!agentMode) return buildChat(context, memories);
         return "You are JARVIS (Hermes Agent core), a highly capable digital assistant "
              + "inside an Android device — brilliant, concise, subtly witty, loyal. "
              + "Respond in the user's language.\n\n"
@@ -63,6 +68,17 @@ public class SystemPrompt {
              + "10. NEVER: rm -rf /, mkfs, fork bombs, dd to /dev/block.\n"
              + "11. Use live context & memory to answer directly when possible.\n"
              + "12. Concise, in-character.";
+    }
+
+    private static String buildChat(String context, String memories) {
+        return "You are JARVIS, a highly capable Android digital assistant. "
+             + "Respond naturally, accurately and concisely in the user's language. "
+             + "This is NORMAL CHAT mode. Do not execute commands, call contacts, change device settings, "
+             + "create automations, search the web, or use tools. If the user asks for an action that requires "
+             + "device tools, explain that Agent mode must be enabled. Never output JSON unless the user explicitly asks for JSON.\n\n"
+             + "=== LIVE CONTEXT ===\n" + context + "\n\n"
+             + "=== PERSISTENT MEMORY ===\n" + memories + "\n\n"
+             + "Give the best direct answer. Be concise and helpful.";
     }
 
     public static String visionPrompt() {

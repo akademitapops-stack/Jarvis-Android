@@ -40,13 +40,31 @@ public class AIManager {
         String full = terminalFeedback == null ? userMessage
                 : userMessage + "\n\n" + terminalFeedback;
 
+        boolean agentMode = prefs.agentMode();
         String sys = SystemPrompt.build(
                 ContextEngine.build(appContext),
-                memory.dumpForPrompt());
+                memory.dumpForPrompt(),
+                agentMode);
 
         List<String[]> recent = recentHistory();
         provider.send(sys, recent, full, new UniversalProvider.Callback() {
             @Override public void onResponse(AIResponse r) {
+                if (!agentMode) {
+                    // Safety boundary: normal chat can never execute tool/action fields,
+                    // even if a model ignores the chat-only system prompt.
+                    r.commands.clear();
+                    r.deviceActions.clear();
+                    r.webSearches.clear();
+                    r.weatherLocation = null;
+                    r.autoCreate = null;
+                    r.autoDeleteName = null;
+                    r.memoryKey = null; r.memoryValue = null;
+                    r.scheduleMinutes = -1; r.scheduleMessage = null;
+                    r.replyPackage = null; r.replyMessage = null;
+                    r.callContact = null; r.contactSearch = null;
+                    r.reportHour = -1; r.reportMinute = -1; r.reportDisable = false;
+                    r.needsConfirmation = false;
+                }
                 history.add(new String[]{"user", full});
                 history.add(new String[]{"assistant", r.raw});
                 trim();
