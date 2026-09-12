@@ -207,6 +207,6 @@
     <Button android:id="@+id/btnSave" android:layout_width="match_parent"
         android:layout_height="54dp" android:text="✓ SIMPAN SEMUA SETTINGS"
         android:layout_marginTop="14dp" android:layout_marginBottom="16dp"/>
+    <Button android:id="@+id/btnChooseModel" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Pilih Model" />
 </LinearLayout>
 </ScrollView>
-    <Button android:id="@+id/btnChooseModel" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Pilih Model" />
