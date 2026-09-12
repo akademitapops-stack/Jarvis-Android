@@ -170,8 +170,13 @@ public class UniversalProvider {
                             .getAsJsonObject("message");
                     if (message == null) throw new IOException("Respons API tidak memiliki message");
                     JsonElement contentEl = message.get("content");
-                    String content = contentEl == null || contentEl.isJsonNull()
-                            ? "" : contentEl.getAsString();
+                    String content = extractMessageContent(contentEl);
+                    if (content.trim().isEmpty()) {
+                        // Some providers return a refusal/reasoning field instead of text content.
+                        JsonElement refusal = message.get("refusal");
+                        if (refusal != null && !refusal.isJsonNull()) content = refusal.getAsString();
+                    }
+                    if (content.trim().isEmpty()) throw new IOException("Respons API tidak memiliki content teks");
                     AIResponse r = AIResponseParser.parse(content, prefs.model());
                     r.timeMs = System.currentTimeMillis() - t0;
                     cb.onResponse(r);
@@ -187,8 +192,9 @@ public class UniversalProvider {
         new Thread(() -> {
             try {
                 String provider = prefs.providerName().toLowerCase();
+                String base = normalizeBaseUrl(prefs.baseUrl()).toLowerCase();
                 List<String> result;
-                if (provider.contains("gemini") || prefs.baseUrl().contains("generativelanguage.googleapis.com")) {
+                if (provider.contains("gemini") || base.contains("generativelanguage.googleapis.com")) {
                     result = fetchGeminiModels();
                 } else {
                     result = fetchOpenAIModels();
@@ -219,9 +225,8 @@ public class UniversalProvider {
                 String id = m.has("id") ? m.get("id").getAsString() : "";
                 if (id.isEmpty()) continue;
 
-                // OpenRouter's /models catalog is intentionally huge (400+ entries).
-                // JARVIS is a chat/agent client, so hide media/embedding/reranker
-                // entries that cannot be used by the normal chat endpoint.
+                // OpenRouter's /models catalog is large. Hide only entries that
+                // clearly cannot be used by the normal text chat endpoint.
                 if (isOpenRouterBase(url) && !isChatModel(m, id)) continue;
                 all.add(id);
             }
@@ -237,10 +242,38 @@ public class UniversalProvider {
                     if (af != bf) return Integer.compare(af,bf);
                     return a.compareToIgnoreCase(b2);
                 });
-                if (all.size() > 60) all = new ArrayList<>(all.subList(0,60));
+                String current = prefs.model() == null ? "" : prefs.model().trim();
+                if (!current.isEmpty() && !all.contains(current)) all.add(0, current);
             }
             return all;
         }
+    }
+
+    private String extractMessageContent(JsonElement contentEl) {
+        if (contentEl == null || contentEl.isJsonNull()) return "";
+        try {
+            if (contentEl.isJsonPrimitive()) return contentEl.getAsString();
+            if (contentEl.isJsonArray()) {
+                StringBuilder out = new StringBuilder();
+                for (JsonElement part : contentEl.getAsJsonArray()) {
+                    if (part == null || part.isJsonNull()) continue;
+                    if (part.isJsonPrimitive()) {
+                        if (out.length() > 0) out.append('\n');
+                        out.append(part.getAsString());
+                    } else if (part.isJsonObject()) {
+                        JsonObject o = part.getAsJsonObject();
+                        JsonElement text = o.get("text");
+                        if (text == null) text = o.get("content");
+                        if (text != null && !text.isJsonNull()) {
+                            if (out.length() > 0) out.append('\n');
+                            out.append(text.isJsonPrimitive() ? text.getAsString() : text.toString());
+                        }
+                    }
+                }
+                return out.toString();
+            }
+            return contentEl.toString();
+        } catch (Exception ignored) { return ""; }
     }
 
     private boolean isOpenRouterBase(String url) {
@@ -298,7 +331,8 @@ public class UniversalProvider {
             try {
                 if (!isConfigured()) { cb.onResult(false, "API key kosong"); return; }
                 String provider = prefs.providerName().toLowerCase();
-                if (provider.contains("gemini") || prefs.baseUrl().contains("generativelanguage.googleapis.com")) {
+                String base = normalizeBaseUrl(prefs.baseUrl()).toLowerCase();
+                if (provider.contains("gemini") || base.contains("generativelanguage.googleapis.com")) {
                     // Model list call validates the key and also gives useful discovery.
                     List<String> models = fetchGeminiModels();
                     cb.onResult(true, "API valid · " + models.size() + " model tersedia");

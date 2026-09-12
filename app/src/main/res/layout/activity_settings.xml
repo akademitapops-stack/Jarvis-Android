@@ -87,9 +87,16 @@
                 <Button android:id="@+id/btnLoadModels" android:layout_width="0dp"
                     android:layout_height="48dp" android:layout_weight="1"
                     android:text="🔄 MUAT MODEL"/>
+                <Button android:id="@+id/btnChooseModel" android:layout_width="0dp"
+                    android:layout_height="48dp" android:layout_weight="1"
+                    android:text="☷ PILIH MODEL" android:layout_marginStart="6dp"/>
+            </LinearLayout>
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:layout_marginTop="6dp">
                 <Button android:id="@+id/btnCustomApi" android:layout_width="0dp"
                     android:layout_height="48dp" android:layout_weight="1"
-                    android:text="🔧 CUSTOM API" android:layout_marginStart="6dp"/>
+                    android:text="🔧 CUSTOM API"/>
             </LinearLayout>
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
@@ -207,6 +214,5 @@
     <Button android:id="@+id/btnSave" android:layout_width="match_parent"
         android:layout_height="54dp" android:text="✓ SIMPAN SEMUA SETTINGS"
         android:layout_marginTop="14dp" android:layout_marginBottom="16dp"/>
-    <Button android:id="@+id/btnChooseModel" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Pilih Model" />
 </LinearLayout>
 </ScrollView>

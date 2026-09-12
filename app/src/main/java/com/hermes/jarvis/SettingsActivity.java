@@ -145,7 +145,13 @@ public class SettingsActivity extends AppCompatActivity {
         tgToken.setText(prefs.telegramToken()); tgAllow.setText(prefs.telegramAllowlist());
         waBridge.setText(prefs.whatsappBridgeUrl()); waPhone.setText(prefs.whatsappPhoneId());
         ghToken.setText(prefs.githubToken()); ghRepo.setText(prefs.githubRepo()); ghBranch.setText(prefs.githubBranch());
+        refreshProfileAdapter();
         refreshStatus();
+    }
+
+    private void refreshProfileAdapter(){
+        ArrayAdapter<String> pa=(ArrayAdapter<String>)profile.getAdapter();
+        if(pa!=null){ pa.clear(); pa.addAll(profileNames()); pa.notifyDataSetChanged(); }
     }
 
     private void loadProfile(ProviderProfileStore.Profile x){
@@ -155,6 +161,7 @@ public class SettingsActivity extends AppCompatActivity {
         String fixedProvider = canonicalProvider(x.provider, x.name);
         x.provider = fixedProvider;
         profile.setTag(x.id); name.setText(x.name); provider.setText(fixedProvider,false);
+        profile.setText(x.name + "  ·  " + fixedProvider + "  ·  " + x.model, false);
         String fixedBase = providerBaseUrl(fixedProvider);
         String savedBase = UniversalProvider.normalizeBaseUrl(x.baseUrl);
         if (!fixedBase.isEmpty() && !"Custom API (OpenAI-compatible)".equals(fixedProvider)) {
@@ -207,13 +214,24 @@ public class SettingsActivity extends AppCompatActivity {
     private String canonicalProvider(String raw, String profileName) {
         String s = raw == null ? "" : raw.trim().toLowerCase();
         String n = profileName == null ? "" : profileName.trim().toLowerCase();
-        if (s.contains("openrouter") || n.equals("openrouter")) return "OpenRouter";
-        if (s.contains("gemini") || n.equals("gemini") || n.contains("google gemini")) return "Google Gemini";
-        if (s.equals("groq") || n.equals("groq")) return "Groq";
-        if (s.contains("openai") || n.equals("openai")) return "OpenAI";
-        if (s.contains("deepseek") || n.equals("deepseek")) return "DeepSeek";
-        if (s.contains("ollama") || n.equals("ollama")) return "Ollama (lokal)";
+        // The provider field is authoritative. Never let a profile display name
+        // such as "Gemini" silently change a profile that is actually OpenRouter/Groq.
+        if (s.equals("groq") || s.contains("groq")) return "Groq";
+        if (s.equals("google gemini") || s.equals("gemini") || s.contains("google gemini")) return "Google Gemini";
+        if (s.equals("openai") || s.contains("openai")) return "OpenAI";
+        if (s.equals("deepseek") || s.contains("deepseek")) return "DeepSeek";
+        if (s.equals("openrouter") || s.contains("openrouter")) return "OpenRouter";
+        if (s.contains("ollama")) return "Ollama (lokal)";
         if (s.contains("custom")) return "Custom API (OpenAI-compatible)";
+
+        // Legacy profiles may have an empty/unknown provider. Only then use the
+        // old profile name as a migration hint.
+        if (n.equals("openrouter")) return "OpenRouter";
+        if (n.equals("gemini") || n.contains("google gemini")) return "Google Gemini";
+        if (n.equals("groq")) return "Groq";
+        if (n.equals("openai")) return "OpenAI";
+        if (n.equals("deepseek")) return "DeepSeek";
+        if (n.equals("ollama")) return "Ollama (lokal)";
         return raw == null || raw.trim().isEmpty() ? "Custom API (OpenAI-compatible)" : raw.trim();
     }
 
@@ -266,6 +284,7 @@ public class SettingsActivity extends AppCompatActivity {
             if(clean.isEmpty()){apiStatus.setText("❌ API key kosong");return;}
         }
         store.upsert(x,clean); profile.setTag(x.id);
+        profile.setText(x.name + "  ·  " + x.provider + "  ·  " + x.model, false);
         apiStatus.setText("✓ Tersimpan & aktif · "+x.provider);
         apiStatus.setTextColor(getColor(R.color.green));
         refreshStatus();
@@ -294,7 +313,10 @@ public class SettingsActivity extends AppCompatActivity {
                     availableModels.addAll(models);
                     refreshModelAdapter();
                     modelStatus.setText("✓ "+models.size()+" model kompatibel · tekan PILIH MODEL");
-                    if (models.size() == 1) {
+                    String current = model.getText().toString().trim();
+                    if (!current.isEmpty() && models.contains(current)) {
+                        model.setText(current, false);
+                    } else if (models.size() == 1) {
                         model.setText(models.get(0), false);
                         persistSelectedModel();
                     }

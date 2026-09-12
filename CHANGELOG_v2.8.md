@@ -1,3 +1,13 @@
+# JARVIS v2.9 fixes
+
+- Provider field is authoritative; profile names can no longer force Gemini.
+- Base URL is automatically derived from the selected provider, including runtime API access.
+- Model picker is visible beside Load Models and retains the active model.
+- OpenRouter model catalog keeps the selected model even when filtering.
+- Chat response parsing now accepts string and structured/array `content`, preventing `Parse API gagal: JsonObject`.
+- Image Studio has explicit validation, request timeouts, better error handling, and URL image display.
+- Web Tools restores previously saved Brave/custom settings when opened.
+
 # JARVIS v2.8 TITAN+
 
 ## Provider/API reliability

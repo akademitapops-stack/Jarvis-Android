@@ -16,7 +16,7 @@ public class ProviderProfileStore {
     public static class Profile {
         public String id = UUID.randomUUID().toString();
         public String name = "New profile";
-        public String provider = "Custom OpenAI-compatible";
+        public String provider = "Custom API (OpenAI-compatible)";
         public String baseUrl = "";
         public String model = "";
         public String secretRef = "";
@@ -38,7 +38,17 @@ public class ProviderProfileStore {
         try { profiles = gson.fromJson(p.getString("profiles", "[]"), new TypeToken<List<Profile>>(){}.getType()); }
         catch (Exception e) { profiles = new ArrayList<>(); }
         if (profiles == null) profiles = new ArrayList<>();
-        for (Profile x : profiles) if (x != null) x.baseUrl = UniversalProvider.normalizeBaseUrl(x.baseUrl);
+        for (Profile x : profiles) if (x != null) {
+            x.baseUrl = UniversalProvider.normalizeBaseUrl(x.baseUrl);
+            String base = x.baseUrl.toLowerCase();
+            if (base.contains("openrouter.ai")) x.provider = "OpenRouter";
+            else if (base.contains("generativelanguage.googleapis.com")) x.provider = "Google Gemini";
+            else if (base.contains("api.groq.com")) x.provider = "Groq";
+            else if (base.contains("api.openai.com")) x.provider = "OpenAI";
+            else if (base.contains("api.deepseek.com")) x.provider = "DeepSeek";
+            else if (base.contains("127.0.0.1:11434") || base.contains("localhost:11434")) x.provider = "Ollama (lokal)";
+            else if (x.provider == null || x.provider.trim().isEmpty()) x.provider = "Custom API (OpenAI-compatible)";
+        }
     }
     private void save() { p.edit().putString("profiles", gson.toJson(profiles)).apply(); }
 
@@ -53,7 +63,9 @@ public class ProviderProfileStore {
         if (!profiles.isEmpty()) active(profiles.get(0).id);
     }
 
-    public List<Profile> all() { return new ArrayList<>(profiles); }
+    public List<Profile> all() {
+        return new ArrayList<>(profiles);
+    }
     public Profile active() {
         String id = p.getString("active_id", "");
         for (Profile x : profiles) if (x.id.equals(id)) return x;

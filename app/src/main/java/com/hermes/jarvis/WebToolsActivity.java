@@ -9,6 +9,9 @@ public class WebToolsActivity extends AppCompatActivity {
     private EditText brave, customUrl, customKey;
     private WebSearchManager web;
     @Override protected void onCreate(Bundle b){super.onCreate(b);setContentView(R.layout.activity_web_tools);web=new WebSearchManager(this);brave=findViewById(R.id.etBraveKey);customUrl=findViewById(R.id.etCustomUrl);customKey=findViewById(R.id.etCustomKey);
+        brave.setText(getSharedPreferences("jarvis_web", MODE_PRIVATE).getString("brave_key", ""));
+        customUrl.setText(getSharedPreferences("jarvis_web", MODE_PRIVATE).getString("custom_url", ""));
+        customKey.setText(getSharedPreferences("jarvis_web", MODE_PRIVATE).getString("custom_key", ""));
         findViewById(R.id.btnSaveBrave).setOnClickListener(v->{web.saveBrave(brave.getText().toString());Toast.makeText(this,"✅ Brave Search aktif",Toast.LENGTH_SHORT).show();});
         findViewById(R.id.btnSaveCustom).setOnClickListener(v->{web.saveCustom(customUrl.getText().toString(),customKey.getText().toString());Toast.makeText(this,"✅ Custom provider aktif",Toast.LENGTH_SHORT).show();});
         findViewById(R.id.btnTestWeb).setOnClickListener(v->new Thread(()->{try{String r=web.search("latest technology",3);runOnUiThread(()->new androidx.appcompat.app.AlertDialog.Builder(this).setTitle("🌐 Web test OK").setMessage(r).setPositiveButton("OK",null).show());}catch(Exception e){runOnUiThread(()->Toast.makeText(this,"❌ "+e.getMessage(),Toast.LENGTH_LONG).show());}}).start());

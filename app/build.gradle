@@ -8,8 +8,8 @@ android {
         applicationId "com.hermes.jarvis"
         minSdk 24
         targetSdk 34
-        versionCode 7
-        versionName "2.8"
+        versionCode 8
+        versionName "2.9"
     }
     buildTypes { release { minifyEnabled false } }
     compileOptions {

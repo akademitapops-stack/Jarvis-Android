@@ -53,6 +53,7 @@ import com.hermes.jarvis.service.NotificationReader;
 import com.hermes.jarvis.service.WakeWordService;
 import com.hermes.jarvis.ui.CameraVisionActivity;
 import com.hermes.jarvis.ui.DashboardActivity;
+import com.hermes.jarvis.ui.DigitalEarthView;
 import com.hermes.jarvis.ui.HudOverlayService;
 import com.hermes.jarvis.ui.SoundFX;
 import com.hermes.jarvis.utils.PrefsManager;
@@ -69,6 +70,8 @@ public class MainActivity extends AppCompatActivity {
     private EditText etInput;
     private ImageButton btnSend, btnMic;
     private TextView tvStatus;
+    private TextView coreState;
+    private DigitalEarthView digitalEarth;
     private RecyclerView rv;
 
     private AIManager ai;
@@ -92,7 +95,7 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setTitle("J.A.R.V.I.S.");
-            getSupportActionBar().setSubtitle("Hermes Agent Core v2.8 TITAN");
+            getSupportActionBar().setSubtitle("Hermes Agent Core v2.9 TITAN");
         }
 
         rv = findViewById(R.id.rvChat);
@@ -100,6 +103,8 @@ public class MainActivity extends AppCompatActivity {
         btnSend = findViewById(R.id.btnSend);
         btnMic = findViewById(R.id.btnMic);
         tvStatus = findViewById(R.id.tvStatus);
+        coreState = findViewById(R.id.coreState);
+        digitalEarth = findViewById(R.id.digitalEarth);
         tvStatus.setOnClickListener(v -> showProfiles());
 
         findViewById(R.id.quickDashboard).setOnClickListener(v -> startActivity(new Intent(this, DashboardActivity.class)));
@@ -220,7 +225,7 @@ public class MainActivity extends AppCompatActivity {
         adapter.add(new Message(
                 "╔═══════════════════════════════╗\n"
                 + "║   🤖 J.A.R.V.I.S. ONLINE      ║\n"
-                + "║   Hermes Agent Core v2.8 TITAN      ║\n"
+                + "║   Hermes Agent Core v2.9 TITAN      ║\n"
                 + "╚═══════════════════════════════╝\n\n"
                 + "Root: " + (terminal.hasRoot() ? "✅ YA" : "❌ TIDAK") + "\n"
                 + "Provider: " + prefs.providerName() + "\n" +
@@ -257,6 +262,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void send() {
+        setCoreState(DigitalEarthView.State.IDLE, "EARTH NETWORK · THINKING");
         String input = etInput.getText().toString().trim();
         if (input.isEmpty() || processing) return;
         etInput.setText("");
@@ -430,7 +436,7 @@ public class MainActivity extends AppCompatActivity {
         if (!hasCommands) {
             if (voiceMode) {
                 String sp = resp.speakText != null ? resp.speakText : resp.message;
-                if (sp != null && !sp.isEmpty()) voice.speak(sp);
+                if (sp != null && !sp.isEmpty()) { setCoreState(DigitalEarthView.State.SPEAKING, "EARTH NETWORK · SPEAKING"); voice.speak(sp); }
             }
             SoundFX.reply();
             finishTurn();
@@ -572,6 +578,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void runWebTools(AIResponse resp, String userText, int depth) {
+        setCoreState(DigitalEarthView.State.SEARCHING, "EARTH NETWORK · SCANNING");
         WebSearchManager web = new WebSearchManager(this);
         new Thread(() -> {
             StringBuilder feedback = new StringBuilder("[WEB TOOLS RESULT]\n");
@@ -663,7 +670,13 @@ public class MainActivity extends AppCompatActivity {
 
     private void finishTurn() {
         processing = false;
+        setCoreState(DigitalEarthView.State.IDLE, "EARTH NETWORK · IDLE");
         refreshSendBtn();
+    }
+
+    private void setCoreState(DigitalEarthView.State state, String label) {
+        if (digitalEarth != null) digitalEarth.setState(state);
+        if (coreState != null) coreState.setText(label);
     }
 
     private void refreshSendBtn() {
@@ -709,7 +722,7 @@ public class MainActivity extends AppCompatActivity {
             startActivity(new Intent(this, SettingsActivity.class));
         } else if (id == R.id.action_about) {
             new AlertDialog.Builder(this)
-                    .setTitle("J.A.R.V.I.S. — v2.5 TITAN+")
+                    .setTitle("J.A.R.V.I.S. — v2.9 TITAN+")
                     .setMessage("Modul lengkap:\n"
                             + "• Agent loop + memori persisten + live context\n"
                             + "• Terminal root + safety + offline fallback\n"

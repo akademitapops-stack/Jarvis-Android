@@ -14,11 +14,34 @@ public class PrefsManager {
     private ProviderProfileStore.Profile active(){ return profiles.active(); }
     public String apiKey(){ ProviderProfileStore.Profile x=active(); return x==null?"":profiles.key(x); }
     public void apiKey(String v){ ProviderProfileStore.Profile x=active(); if(x!=null){ profiles.upsert(x, UniversalProvider.sanitizeApiKey(v)); } else p.edit().putString("api_key",UniversalProvider.sanitizeApiKey(v)).apply(); }
-    public String baseUrl(){ ProviderProfileStore.Profile x=active(); return x!=null?UniversalProvider.normalizeBaseUrl(x.baseUrl):UniversalProvider.normalizeBaseUrl(p.getString("base_url","https://api.groq.com/openai/v1")); }
-    public void baseUrl(String v){ ProviderProfileStore.Profile x=active(); if(x!=null){x.baseUrl=UniversalProvider.normalizeBaseUrl(v);profiles.upsert(x,apiKey());}else p.edit().putString("base_url",UniversalProvider.normalizeBaseUrl(v)).apply(); }
+    public String baseUrl(){
+        ProviderProfileStore.Profile x=active();
+        if(x==null) return UniversalProvider.normalizeBaseUrl(p.getString("base_url","https://api.groq.com/openai/v1"));
+        String automatic=providerBaseUrl(x.provider);
+        return automatic.isEmpty() ? UniversalProvider.normalizeBaseUrl(x.baseUrl) : automatic;
+    }
+    public void baseUrl(String v){
+        ProviderProfileStore.Profile x=active();
+        if(x!=null){
+            String automatic=providerBaseUrl(x.provider);
+            x.baseUrl=automatic.isEmpty()?UniversalProvider.normalizeBaseUrl(v):automatic;
+            profiles.upsert(x,apiKey());
+        }else p.edit().putString("base_url",UniversalProvider.normalizeBaseUrl(v)).apply();
+    }
+    private String providerBaseUrl(String provider){
+        if(provider==null) return "";
+        String s=provider.toLowerCase();
+        if(s.contains("groq")) return "https://api.groq.com/openai/v1";
+        if(s.contains("gemini")||s.contains("google")) return "https://generativelanguage.googleapis.com/v1beta/openai";
+        if(s.equals("openai")||s.contains("openai")) return "https://api.openai.com/v1";
+        if(s.contains("deepseek")) return "https://api.deepseek.com";
+        if(s.contains("openrouter")) return "https://openrouter.ai/api/v1";
+        if(s.contains("ollama")) return "http://127.0.0.1:11434/v1";
+        return "";
+    }
     public String model(){ ProviderProfileStore.Profile x=active(); return x!=null?x.model:p.getString("model","llama-3.3-70b-versatile"); }
     public void model(String v){ ProviderProfileStore.Profile x=active(); if(x!=null){x.model=v;profiles.upsert(x,apiKey());}else p.edit().putString("model",v).apply(); }
-    public String providerName(){ProviderProfileStore.Profile x=active();return x==null?"Custom":x.name;}
+    public String providerName(){ProviderProfileStore.Profile x=active();return x==null?"Custom":(x.provider==null||x.provider.trim().isEmpty()?x.name:x.provider);}
     public ProviderProfileStore profileStore(){return profiles;}
     public boolean autoSpeak(){return p.getBoolean("auto_speak",true);} public void autoSpeak(boolean v){p.edit().putBoolean("auto_speak",v).apply();}
     public boolean fallbackOffline(){return p.getBoolean("fallback",true);} public void fallbackOffline(boolean v){p.edit().putBoolean("fallback",v).apply();}
