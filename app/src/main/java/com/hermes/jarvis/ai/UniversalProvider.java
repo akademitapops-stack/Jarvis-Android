@@ -231,11 +231,11 @@ public class UniversalProvider {
                 // Keep the UI compact: show a useful shortlist instead of hundreds
                 // of entries. The picker is searchable and the currently selected
                 // model is always re-added by SettingsActivity when necessary.
-                Collections.sort(all, (a,b) -> {
+                Collections.sort(all, (a, b2) -> {
                     int af = a.endsWith(":free") ? 0 : 1;
-                    int bf = b.endsWith(":free") ? 0 : 1;
+                     int bf = b2.endsWith(":free") ? 0 : 1;
                     if (af != bf) return Integer.compare(af,bf);
-                    return a.compareToIgnoreCase(b);
+                    return a.compareToIgnoreCase(b2);
                 });
                 if (all.size() > 60) all = new ArrayList<>(all.subList(0,60));
             }

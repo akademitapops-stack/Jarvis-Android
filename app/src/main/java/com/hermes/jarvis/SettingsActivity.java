@@ -115,7 +115,7 @@ public class SettingsActivity extends AppCompatActivity {
 
         findViewById(R.id.btnAppAccess).setOnClickListener(v->startActivity(new Intent(this,AppAccessActivity.class)));
         findViewById(R.id.btnSave).setOnClickListener(v->saveAll());
-        telegramOn.setOnCheckedChangeListener((b,checked)->{
+        telegramOn.setOnCheckedChangeListener((isChecked,checked)->{
             Intent i=new Intent(this,com.hermes.jarvis.service.TelegramAgentService.class);
             if(checked) startForegroundService(i); else stopService(i);
         });
