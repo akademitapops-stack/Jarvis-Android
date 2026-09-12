@@ -1,0 +1,5 @@
+{
+  "name":"jarvis-baileys-bridge","version":"1.0.0","private":true,
+  "type":"module","scripts":{"start":"node server.js"},
+  "dependencies":{"@whiskeysockets/baileys":"latest","express":"latest","pino":"latest","qrcode":"latest"}
+}

@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item android:id="@+id/action_new_chat" android:title="＋ Chat Baru" app:showAsAction="never" />
+    <item android:id="@+id/action_sessions" android:title="☰ Semua Chat" app:showAsAction="never" />
+    <item android:id="@+id/action_image" android:title="✨ Image Studio" app:showAsAction="never" />
     <item android:id="@+id/action_dashboard" android:title="📊 Dashboard"
         app:showAsAction="never" />
     <item android:id="@+id/action_vision" android:title="📷 Vision Kamera"

@@ -1,0 +1,8 @@
+<resources>
+    <string name="web_tools_title">Web Search &amp; Web Tools</string>
+    <string name="web_tools_brave">Brave Search API</string>
+    <string name="web_tools_custom">Custom Search API</string>
+    <string name="web_tools_image_results">Image results</string>
+    <string name="web_tools_news_results">News links</string>
+    <string name="web_tools_scrape">Open &amp; extract page</string>
+</resources>

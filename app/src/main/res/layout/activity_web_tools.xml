@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:background="@color/bg_dark">
+ <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="20dp">
+  <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="JARVIS / WEB TOOLS" android:textColor="@color/white" android:textSize="26sp" android:textStyle="bold"/>
+  <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Search • News • Scrape • Images" android:textColor="@color/text_dim" android:layout_marginTop="5dp"/>
+  <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="BRAVE SEARCH API" android:textColor="@color/white" android:textStyle="bold" android:layout_marginTop="26dp"/>
+  <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Satu key untuk web, news dan image search. SafeSearch tetap aktif." android:textColor="@color/text_dim" android:layout_marginTop="4dp"/>
+  <EditText android:id="@+id/etBraveKey" android:layout_width="match_parent" android:layout_height="54dp" android:hint="Brave API key" android:inputType="textPassword" android:textColor="@color/white" android:textColorHint="@color/text_dim" android:background="@drawable/bg_input" android:padding="13dp" android:layout_marginTop="10dp"/>
+  <Button android:id="@+id/btnSaveBrave" android:layout_width="match_parent" android:layout_height="50dp" android:text="✓ SAVE &amp; USE BRAVE" android:layout_marginTop="8dp"/>
+  <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="CUSTOM JSON SEARCH" android:textColor="@color/white" android:textStyle="bold" android:layout_marginTop="26dp"/>
+  <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Endpoint menerima POST { q, count } dan mengembalikan results[]." android:textColor="@color/text_dim" android:layout_marginTop="4dp"/>
+  <EditText android:id="@+id/etCustomUrl" android:layout_width="match_parent" android:layout_height="54dp" android:hint="https://example.com/search" android:inputType="textUri" android:textColor="@color/white" android:textColorHint="@color/text_dim" android:background="@drawable/bg_input" android:padding="13dp" android:layout_marginTop="10dp"/>
+  <EditText android:id="@+id/etCustomKey" android:layout_width="match_parent" android:layout_height="54dp" android:hint="Optional Bearer API key" android:inputType="textPassword" android:textColor="@color/white" android:textColorHint="@color/text_dim" android:background="@drawable/bg_input" android:padding="13dp" android:layout_marginTop="8dp"/>
+  <Button android:id="@+id/btnSaveCustom" android:layout_width="match_parent" android:layout_height="50dp" android:text="✓ SAVE &amp; USE CUSTOM" android:layout_marginTop="8dp"/>
+  <Button android:id="@+id/btnTestWeb" android:layout_width="match_parent" android:layout_height="52dp" android:text="⚡ TEST WEB SEARCH" android:layout_marginTop="24dp"/>
+  <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="IMAGE RESULTS\n\n• Gambar tampil langsung di chat\n• Tombol ⬇ Download gambar menyimpan ke Download/JARVIS\n• Link hasil web/news otomatis bisa diketuk\n• URL publik dapat dibaca dengan web_open" android:textColor="@color/text_dim" android:layout_marginTop="24dp" android:textSize="13sp"/>
+ </LinearLayout>
+</ScrollView>

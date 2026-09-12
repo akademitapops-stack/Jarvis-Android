@@ -33,15 +33,21 @@ import com.hermes.jarvis.ai.OfflineBrain;
 import com.hermes.jarvis.ai.SystemPrompt;
 import com.hermes.jarvis.ai.WeatherTool;
 import com.hermes.jarvis.ai.WebSearchTool;
+import com.hermes.jarvis.web.WebSearchManager;
 import com.hermes.jarvis.automation.AutomationEngine;
 import com.hermes.jarvis.automation.DailyReport;
 import com.hermes.jarvis.automation.SmartAutomation;
 import com.hermes.jarvis.core.BiometricGate;
 import com.hermes.jarvis.core.ContactHelper;
+import com.hermes.jarvis.core.CalendarTool;
+import com.hermes.jarvis.core.CustomToolStore;
+import com.hermes.jarvis.core.GitHubManager;
+import com.hermes.jarvis.service.JarvisAccessibilityService;
 import com.hermes.jarvis.core.DeviceController;
 import com.hermes.jarvis.core.MemoryBank;
 import com.hermes.jarvis.core.StatsTracker;
 import com.hermes.jarvis.core.TerminalExecutor;
+import com.hermes.jarvis.core.SessionStore;
 import com.hermes.jarvis.model.Message;
 import com.hermes.jarvis.service.NotificationReader;
 import com.hermes.jarvis.service.WakeWordService;
@@ -63,7 +69,6 @@ public class MainActivity extends AppCompatActivity {
     private EditText etInput;
     private ImageButton btnSend, btnMic;
     private TextView tvStatus;
-    private com.google.android.material.button.MaterialButton btnMode;
     private RecyclerView rv;
 
     private AIManager ai;
@@ -87,7 +92,7 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setTitle("J.A.R.V.I.S.");
-            getSupportActionBar().setSubtitle("Hermes Agent Core v2.5 TITAN");
+            getSupportActionBar().setSubtitle("Hermes Agent Core v2.7 WEB+");
         }
 
         rv = findViewById(R.id.rvChat);
@@ -95,24 +100,19 @@ public class MainActivity extends AppCompatActivity {
         btnSend = findViewById(R.id.btnSend);
         btnMic = findViewById(R.id.btnMic);
         tvStatus = findViewById(R.id.tvStatus);
-        btnMode = findViewById(R.id.btnMode);
+        tvStatus.setOnClickListener(v -> showProfiles());
 
         findViewById(R.id.quickDashboard).setOnClickListener(v -> startActivity(new Intent(this, DashboardActivity.class)));
         findViewById(R.id.quickVision).setOnClickListener(v -> startActivity(new Intent(this, CameraVisionActivity.class)));
         findViewById(R.id.quickSkills).setOnClickListener(v -> startActivity(new Intent(this, SkillsActivity.class)));
         findViewById(R.id.quickLogs).setOnClickListener(v -> startActivity(new Intent(this, LogsActivity.class)));
         findViewById(R.id.quickSettings).setOnClickListener(v -> startActivity(new Intent(this, SettingsActivity.class)));
+        findViewById(R.id.quickNew).setOnClickListener(v -> newChat());
+        findViewById(R.id.quickSessions).setOnClickListener(v -> showSessions());
+        findViewById(R.id.quickImage).setOnClickListener(v -> startActivity(new Intent(this, ImageGenerationActivity.class)));
+        findViewById(R.id.quickWeb).setOnClickListener(v -> startActivity(new Intent(this, WebToolsActivity.class)));
 
         prefs = new PrefsManager(this);
-        refreshModeButton();
-        btnMode.setOnClickListener(v -> {
-            prefs.agentMode(!prefs.agentMode());
-            refreshModeButton();
-            updateStatus();
-            adapter.add(new Message(prefs.agentMode()
-                    ? "⚡ Agent mode AKTIF — model yang sama dapat menjalankan tools/tugas agent."
-                    : "💬 Chat mode AKTIF — model yang sama digunakan tanpa eksekusi tools.", Message.INFO));
-        });
         terminal = TerminalExecutor.get();
         memory = new MemoryBank(this);
         ai = new AIManager(this, memory);
@@ -153,7 +153,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         requestPerms();
-        welcome();
+        restoreOrWelcome();
         updateStatus();
         handleTrigger(getIntent());
 
@@ -197,12 +197,24 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void restoreOrWelcome() {
+        List<SessionStore.Chat> saved = ai.currentMessages();
+        if (!saved.isEmpty()) {
+            for (SessionStore.Chat m : saved) {
+                int type = "user".equals(m.role) ? Message.USER : Message.BOT;
+                adapter.add(new Message(m.text, type));
+            }
+            return;
+        }
+        welcome();
+    }
+
     private void welcome() {
         SoundFX.boot();
         adapter.add(new Message(
                 "╔═══════════════════════════════╗\n"
                 + "║   🤖 J.A.R.V.I.S. ONLINE      ║\n"
-                + "║   Hermes Agent Core v2.5 TITAN      ║\n"
+                + "║   Hermes Agent Core v2.7 WEB+      ║\n"
                 + "╚═══════════════════════════════╝\n\n"
                 + "Root: " + (terminal.hasRoot() ? "✅ YA" : "❌ TIDAK") + "\n"
                 + "Model: " + prefs.model() + "\n"
@@ -226,20 +238,8 @@ public class MainActivity extends AppCompatActivity {
                 + " | " + prefs.model()
                 + (ai.isConfigured() ? "" : " | ⚠️ NO KEY");
         tvStatus.setText(s);
-        if (btnMode != null) refreshModeButton();
         tvStatus.setTextColor(ContextCompat.getColor(this,
                 terminal.hasRoot() ? R.color.green : R.color.orange));
-    }
-
-    private void refreshModeButton() {
-        if (btnMode == null || prefs == null) return;
-        if (prefs.agentMode()) {
-            btnMode.setText("⚡ AGENT");
-            btnMode.setContentDescription("Agent mode aktif");
-        } else {
-            btnMode.setText("💬 CHAT");
-            btnMode.setContentDescription("Chat mode aktif");
-        }
     }
 
     private void send() {
@@ -291,6 +291,18 @@ public class MainActivity extends AppCompatActivity {
             memory.remember(resp.memoryKey, resp.memoryValue);
             adapter.add(new Message("🧠 Memori: " + resp.memoryKey
                     + " = " + resp.memoryValue, Message.OK));
+        }
+        if (resp.createToolName != null && !resp.createToolName.trim().isEmpty() && resp.createToolCommand != null && !resp.createToolCommand.trim().isEmpty()) {
+            CustomToolStore.Tool t = new CustomToolStore.Tool(); t.name=resp.createToolName.trim(); t.description=resp.createToolDescription==null?"":resp.createToolDescription.trim(); t.command=resp.createToolCommand.trim(); t.requiresRoot=resp.createToolRoot; ai.customTools().upsert(t); adapter.add(new Message("🧩 Tool tersimpan: "+t.name, Message.OK));
+        }
+        if (resp.useTool != null && !resp.useTool.trim().isEmpty()) { runCustomTool(resp.useTool.trim(), userText, depth); return; }
+        if (resp.githubList != null && !resp.githubList.trim().isEmpty()) {
+            adapter.add(new Message("🐙 Mengakses GitHub: "+resp.githubList, Message.INFO));
+            new GitHubManager().listRepo(prefs.githubToken(), prefs.githubRepo(), prefs.githubBranch(), new GitHubManager.Callback(){ public void ok(String t){runOnUiThread(()->{adapter.add(new Message(t,Message.TERM)); if(depth<MAX_DEPTH)dispatch(userText,depth+1,"[GITHUB]\n"+t);else finishTurn();});} public void err(String e){runOnUiThread(()->{adapter.add(new Message("❌ GitHub: "+e,Message.ERROR));finishTurn();});}}); return;
+        }
+        if (resp.calendarTitle != null && !resp.calendarTitle.trim().isEmpty() && resp.calendarStartMs > 0) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_CALENDAR) != PackageManager.PERMISSION_GRANTED) { ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.WRITE_CALENDAR,Manifest.permission.READ_CALENDAR},88); adapter.add(new Message("📅 Izinkan akses Kalender lalu ulangi perintah.",Message.INFO)); finishTurn(); return; }
+            long end=resp.calendarEndMs>resp.calendarStartMs?resp.calendarEndMs:resp.calendarStartMs+3600000L; String result=CalendarTool.addEvent(this,resp.calendarTitle,resp.calendarStartMs,end,resp.calendarNote); adapter.add(new Message(result, result.startsWith("✅")?Message.OK:Message.ERROR)); if(depth<MAX_DEPTH&&result.startsWith("❌")){} finishTurn(); return;
         }
         if (resp.scheduleMessage != null && resp.scheduleMinutes > 0) {
             AutomationEngine.schedule(this, resp.scheduleMinutes, resp.scheduleMessage);
@@ -362,12 +374,8 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        if (!resp.webSearches.isEmpty()) {
-            runWebSearches(resp.webSearches, 0, new StringBuilder(), result ->
-                    runOnUiThread(() -> {
-                        if (depth < MAX_DEPTH) dispatch(userText, depth + 1, result);
-                        else finishTurn();
-                    }));
+        if (!resp.webSearches.isEmpty() || !resp.newsSearches.isEmpty() || !resp.imageSearches.isEmpty() || !resp.webOpens.isEmpty()) {
+            runWebTools(resp, userText, depth);
             return;
         }
 
@@ -394,7 +402,8 @@ public class MainActivity extends AppCompatActivity {
                 adapter.add(new Message(NotificationReader.snapshotText(), Message.TERM));
                 continue;
             }
-            String result = DeviceController.execute(this, action);
+            String result = executeUiAction(action);
+            if (result == null) result = DeviceController.execute(this, action);
             adapter.add(new Message("🔧 " + action + " → " + result, Message.INFO));
         }
 
@@ -442,6 +451,29 @@ public class MainActivity extends AppCompatActivity {
                         });
                     }
                 });
+    }
+
+    private String executeUiAction(String action) {
+        if (action == null || !action.startsWith("ui_")) return null;
+        if (action.startsWith("ui_tap_")) return JarvisAccessibilityService.tapText(action.substring(7));
+        if (action.startsWith("ui_type_")) return JarvisAccessibilityService.typeText(action.substring(8));
+        if (action.equals("ui_back")) return JarvisAccessibilityService.back();
+        if (action.equals("ui_home")) return JarvisAccessibilityService.home();
+        if (action.equals("ui_recents")) return JarvisAccessibilityService.recents();
+        if (action.equals("ui_scroll_forward")) return JarvisAccessibilityService.scroll(true);
+        if (action.equals("ui_scroll_backward")) return JarvisAccessibilityService.scroll(false);
+        return "❌ UI action tidak dikenal";
+    }
+
+    private void runCustomTool(String name, String userText, int depth) {
+        for (CustomToolStore.Tool t : ai.customTools().all()) if (t.name.equalsIgnoreCase(name)) {
+            CommandSafetyValidator.validate(java.util.Collections.singletonList(t.command), new CommandSafetyValidator.Callback(){
+                public void onApproved(List<String> cmds){ terminal.run(cmds.get(0),t.requiresRoot,new TerminalExecutor.Callback(){ public void onOutput(String line){} public void onError(String line){} public void onComplete(int code,String out){runOnUiThread(()->{adapter.add(new Message("🧩 "+t.name+" → "+out,Message.TERM));if(depth<MAX_DEPTH)dispatch(userText,depth+1,buildFeedback(out));else finishTurn();}); }}); }
+                public void onConfirmation(String warn,List<String> cmds){runOnUiThread(()->new AlertDialog.Builder(MainActivity.this).setTitle("Jalankan tool "+t.name+"?").setMessage(warn).setPositiveButton("Jalankan",(d,w)->terminal.run(cmds.get(0),t.requiresRoot,new TerminalExecutor.Callback(){ public void onOutput(String line){} public void onError(String line){} public void onComplete(int code,String out){runOnUiThread(()->{adapter.add(new Message(out,Message.TERM));finishTurn();}); }} )).setNegativeButton("Batal",(d,w)->finishTurn()).show());}
+                public void onBlocked(String reason){runOnUiThread(()->{adapter.add(new Message(reason,Message.ERROR));finishTurn();});}
+            }); return;
+        }
+        adapter.add(new Message("❌ Tool tidak ditemukan: "+name,Message.ERROR)); finishTurn();
     }
 
     private void handleCall(String name) {
@@ -520,33 +552,58 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private interface SearchDone { void onDone(String all); }
-
-    private void runWebSearches(List<String> queries, int idx, StringBuilder sb,
-                                SearchDone done) {
-        if (idx >= queries.size()) {
-            done.onDone("[WEB RESULTS]\n" + sb + "\n\n"
-                    + SystemPrompt.feedbackInstruction(MAX_DEPTH));
-            return;
-        }
-        stats.incSearch();
-        String q = queries.get(idx);
-        adapter.add(new Message("🌐 Mencari: " + q, Message.INFO));
-        WebSearchTool.search(q, new WebSearchTool.SearchCallback() {
-            @Override public void onResult(String formatted) {
-                runOnUiThread(() -> {
-                    sb.append(formatted).append("\n\n");
-                    adapter.add(new Message(formatted, Message.TERM));
-                    runWebSearches(queries, idx + 1, sb, done);
-                });
+    private void runWebTools(AIResponse resp, String userText, int depth) {
+        WebSearchManager web = new WebSearchManager(this);
+        new Thread(() -> {
+            StringBuilder feedback = new StringBuilder("[WEB TOOLS RESULT]
+");
+            try {
+                for (String q : resp.webSearches) {
+                    stats.incSearch();
+                    runOnUiThread(() -> adapter.add(new Message("🌐 Web search: " + q, Message.INFO)));
+                    List<WebSearchManager.Result> rs = web.searchResults(q, 6, "web");
+                    feedback.append("\n[SEARCH: ").append(q).append("]\n");
+                    for (WebSearchManager.Result r : rs) {
+                        feedback.append(r.title).append("\n").append(r.url).append("\n").append(r.description).append("\n\n");
+                    }
+                    final String formatted = web.search(q, 6);
+                    runOnUiThread(() -> adapter.add(new Message(formatted, Message.TERM)));
+                }
+                for (String q : resp.newsSearches) {
+                    stats.incSearch();
+                    runOnUiThread(() -> adapter.add(new Message("📰 News search: " + q, Message.INFO)));
+                    List<WebSearchManager.Result> rs = web.searchResults(q, 6, "news");
+                    feedback.append("\n[NEWS: ").append(q).append("]\n");
+                    for (WebSearchManager.Result r : rs) feedback.append("• ").append(r.title).append("\n").append(r.url).append("\n").append(r.description).append("\n\n");
+                    final String formatted = web.news(q, 6);
+                    runOnUiThread(() -> adapter.add(new Message(formatted, Message.TERM)));
+                }
+                for (String url : resp.webOpens) {
+                    runOnUiThread(() -> adapter.add(new Message("📖 Membaca: " + url, Message.INFO)));
+                    String text = web.scrape(url);
+                    feedback.append("\n[OPEN/SCRAPE: ").append(url).append("]\n").append(text).append("\n");
+                    String shown = text.length() > 7000 ? text.substring(0, 7000) + "\n[…dipotong…]" : text;
+                    runOnUiThread(() -> adapter.add(new Message(shown, Message.TERM)));
+                }
+                for (String q : resp.imageSearches) {
+                    stats.incSearch();
+                    runOnUiThread(() -> adapter.add(new Message("🖼️ Mencari gambar: " + q, Message.INFO)));
+                    List<WebSearchManager.ImageResult> imgs = web.images(q, 6);
+                    feedback.append("\n[IMAGES: ").append(q).append("]\n");
+                    for (WebSearchManager.ImageResult im : imgs) {
+                        if (im.url == null || im.url.isEmpty()) continue;
+                        String title = im.title == null || im.title.isEmpty() ? "Hasil gambar" : im.title;
+                        String line = "🖼️ " + title + "\n" + im.url;
+                        runOnUiThread(() -> adapter.add(new Message(line, Message.IMAGE, im.url)));
+                        feedback.append(title).append("\n").append(im.url).append("\n");
+                    }
+                }
+                String result = feedback.append("\n").append(SystemPrompt.feedbackInstruction(MAX_DEPTH)).toString();
+                runOnUiThread(() -> { if (depth < MAX_DEPTH) dispatch(userText, depth + 1, result); else finishTurn(); });
+            } catch (Exception e) {
+                runOnUiThread(() -> { adapter.add(new Message("❌ Web: " + e.getMessage(), Message.ERROR)); finishTurn(); });
             }
-            @Override public void onError(String error) {
-                runOnUiThread(() -> {
-                    sb.append("[gagal: ").append(q).append(" — ").append(error).append("]\n");
-                    runWebSearches(queries, idx + 1, sb, done);
-                });
-            }
-        });
+        }).start();
     }
 
     private interface SeqDone { void onDone(String allOutput); }
@@ -623,14 +680,18 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this, voiceMode ? "🔊 Suara ON" : "🔇 OFF",
                     Toast.LENGTH_SHORT).show();
         } else if (id == R.id.action_clear) {
-            adapter.clear();
-            ai.clearHistory();
-            welcome();
+            newChat();
+        } else if (id == R.id.action_new_chat) {
+            newChat();
+        } else if (id == R.id.action_sessions) {
+            showSessions();
+        } else if (id == R.id.action_image) {
+            startActivity(new Intent(this, ImageGenerationActivity.class));
         } else if (id == R.id.action_settings) {
             startActivity(new Intent(this, SettingsActivity.class));
         } else if (id == R.id.action_about) {
             new AlertDialog.Builder(this)
-                    .setTitle("J.A.R.V.I.S. — v2.4 TITAN")
+                    .setTitle("J.A.R.V.I.S. — v2.5 TITAN+")
                     .setMessage("Modul lengkap:\n"
                             + "• Agent loop + memori persisten + live context\n"
                             + "• Terminal root + safety + offline fallback\n"
@@ -643,6 +704,31 @@ public class MainActivity extends AppCompatActivity {
                     .setPositiveButton("OK", null).show();
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void showProfiles() {
+        List<com.hermes.jarvis.core.ProviderProfileStore.Profile> ps = prefs.profileStore().all();
+        String[] items = new String[ps.size()];
+        String active = prefs.profileStore().active() == null ? "" : prefs.profileStore().active().id;
+        for (int i=0;i<ps.size();i++) items[i]=(ps.get(i).id.equals(active)?"● ":"")+ps.get(i).name+" — "+ps.get(i).model;
+        new AlertDialog.Builder(this).setTitle("AI Profiles").setItems(items,(d,w)->{prefs.profileStore().active(ps.get(w).id);updateStatus();Toast.makeText(this,"⚡ "+ps.get(w).name+" aktif",Toast.LENGTH_SHORT).show();}).setPositiveButton("Settings",(d,w)->startActivity(new Intent(this,SettingsActivity.class))).show();
+    }
+
+    private void newChat() {
+        ai.newSession("New chat");
+        adapter.clear();
+        welcome();
+        Toast.makeText(this, "✨ Chat baru", Toast.LENGTH_SHORT).show();
+    }
+
+    private void showSessions() {
+        List<SessionStore.Session> ss = ai.store().all();
+        String[] items = new String[ss.size()];
+        SessionStore.Session cur = ai.store().current();
+        for (int i=0;i<ss.size();i++) items[i] = (ss.get(i).id.equals(cur==null?"":cur.id)?"● ":"") + ss.get(i).title;
+        new AlertDialog.Builder(this).setTitle("Chats / Sessions").setItems(items,(d,w)->{
+            ai.switchSession(ss.get(w).id); adapter.clear(); restoreOrWelcome();
+        }).setNeutralButton("+ New chat",(d,w)->newChat()).show();
     }
 
     private void showAutomations() {

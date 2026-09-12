@@ -37,6 +37,12 @@ public class AIResponseParser {
             if (o.has("web_search") && o.get("web_search").isJsonArray())
                 o.getAsJsonArray("web_search").forEach(e ->
                         r.webSearches.add(e.getAsString()));
+            if (o.has("news_search") && o.get("news_search").isJsonArray())
+                o.getAsJsonArray("news_search").forEach(e -> r.newsSearches.add(e.getAsString()));
+            if (o.has("image_search") && o.get("image_search").isJsonArray())
+                o.getAsJsonArray("image_search").forEach(e -> r.imageSearches.add(e.getAsString()));
+            if (o.has("web_open") && o.get("web_open").isJsonArray())
+                o.getAsJsonArray("web_open").forEach(e -> r.webOpens.add(e.getAsString()));
 
             if (o.has("weather") && o.get("weather").isJsonObject()) {
                 JsonObject w = o.getAsJsonObject("weather");
@@ -100,6 +106,13 @@ public class AIResponseParser {
                             ? dr.get("minute").getAsInt() : 0;
                 }
             }
+
+            if (o.has("create_tool") && o.get("create_tool").isJsonObject()) {
+                JsonObject t=o.getAsJsonObject("create_tool"); r.createToolName=jstr(t,"name",""); r.createToolDescription=jstr(t,"description",""); r.createToolCommand=jstr(t,"command",""); r.createToolRoot=t.has("requires_root")&&t.get("requires_root").getAsBoolean();
+            }
+            if (o.has("use_tool") && !o.get("use_tool").isJsonNull()) r.useTool=o.get("use_tool").getAsString();
+            if (o.has("github_list") && !o.get("github_list").isJsonNull()) r.githubList=o.get("github_list").getAsString();
+            if (o.has("calendar_event") && o.get("calendar_event").isJsonObject()) { JsonObject ce=o.getAsJsonObject("calendar_event"); r.calendarTitle=jstr(ce,"title",""); r.calendarNote=jstr(ce,"note",""); if(ce.has("start_ms"))r.calendarStartMs=ce.get("start_ms").getAsLong(); if(ce.has("end_ms"))r.calendarEndMs=ce.get("end_ms").getAsLong(); }
 
             if (o.has("needs_confirmation"))
                 r.needsConfirmation = o.get("needs_confirmation").getAsBoolean();
