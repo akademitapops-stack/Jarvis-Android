@@ -28,8 +28,7 @@ public class CommandSafetyValidator {
             String low = c.toLowerCase();
             for (String b : BLOCKED) {
                 if (low.contains(b)) {
-                    cb.onBlocked("🚫 DIBLOKIR: command mengandung pola merusak (\"" + b
-                            + "\"). Jarvis menolak melakukannya demi keselamatan device.");
+                    cb.onBlocked("🚫 DIBLOKIR: command mengandung pola merusak (\"" + b + "\"). Jarvis menolak melakukannya demi keselamatan device.");
                     return;
                 }
             }
