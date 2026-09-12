@@ -49,3 +49,5 @@ public class CommandSafetyValidator {
             cb.onApproved(commands);
         }
     }
+}
+}
