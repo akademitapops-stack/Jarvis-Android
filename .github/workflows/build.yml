@@ -1,6 +1,8 @@
 name: Build JARVIS v2.8 TITAN+
 on:
   push:
+    env:
+      GRADLE_OPTS: "-Dorg.gradle.daemon=false"
     branches: [ main ]
   workflow_dispatch:
 jobs:
