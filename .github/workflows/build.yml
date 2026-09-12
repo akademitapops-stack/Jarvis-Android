@@ -16,6 +16,8 @@ jobs:
           java-version: '17'
       - uses: android-actions/setup-android@v3
       - name: Install Android SDK 34
+      - name: Accept SDK licenses
+        run: yes | sdkmanager --licenses || true
       - name: Check SDK
         run: ls -l $ANDROID_SDK_ROOT/platforms/android-34 2>/dev/null || echo "SDK 34 MISSING"
         run: sdkmanager "platforms;android-34" "build-tools;34.0.0"
@@ -24,8 +26,3 @@ jobs:
           gradle-version: '8.5'
       - name: Build debug APK
         run: gradle :app:assembleDebug --no-daemon --stacktrace --info --stacktrace --console=plain
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: JARVIS-v2.8-TITAN-PLUS-APK
-          path: app/build/outputs/apk/debug/app-debug.apk
