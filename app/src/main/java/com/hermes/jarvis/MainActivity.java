@@ -223,7 +223,7 @@ public class MainActivity extends AppCompatActivity {
                 + "║   Hermes Agent Core v2.8 TITAN      ║\n"
                 + "╚═══════════════════════════════╝\n\n"
                 + "Root: " + (terminal.hasRoot() ? "✅ YA" : "❌ TIDAK") + "\n"
-                + "Model: " + prefs.model() + "\n"
+                + "Provider: " + prefs.providerName() + "\n" +
                 + "Memori: " + memory.size() + " fakta\n\n"
                 + "Coba:\n"
                 + "  \"telpon Budi\" (kontak)\n"

@@ -188,7 +188,7 @@ public class UniversalProvider {
         new Thread(() -> {
             try {
                 String provider = prefs.providerName().toLowerCase();
-                List<String> result;
+                String[] skip={"embedding","rerank","moderation","whisper","tts","speech","audio-only","image-only","video-only","veo","sora"}; List<String> result = new ArrayList<>();
                 if (provider.contains("gemini") || prefs.baseUrl().contains("generativelanguage.googleapis.com")) {
                     result = fetchGeminiModels();
                 } else {
