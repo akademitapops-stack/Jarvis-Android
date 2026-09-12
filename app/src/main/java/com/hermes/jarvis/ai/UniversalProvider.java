@@ -102,7 +102,6 @@ public class UniversalProvider {
     }
 
     /** Normalize any legacy/full endpoint into a provider BASE URL. */
-    public static String sanitizeApiKey(String k){ if(k==null) return ""; String s=k.trim(); s=s.replaceAll("\\p{Cn}\\p{Co}\\p{Cs}",""); s=s.replaceAll("\\s+"," "); return s.trim(); }
     public static String normalizeBaseUrl(String raw) {
         String s = cleanUrl(raw);
         if (s.isEmpty()) return "";
@@ -188,7 +187,7 @@ public class UniversalProvider {
         new Thread(() -> {
             try {
                 String provider = prefs.providerName().toLowerCase();
-                String[] skip={"embedding","rerank","moderation","whisper","tts","speech","audio-only","image-only","video-only","veo","sora"}; List<String> result = new ArrayList<>();
+                List<String> result;
                 if (provider.contains("gemini") || prefs.baseUrl().contains("generativelanguage.googleapis.com")) {
                     result = fetchGeminiModels();
                 } else {
@@ -213,17 +212,58 @@ public class UniversalProvider {
             if (!r.isSuccessful()) throw new IOException(formatHttpError(r.code(), body));
             JsonObject root = gson.fromJson(body, JsonObject.class);
             JsonArray data = root == null ? null : root.getAsJsonArray("data");
-            List<String> out = new ArrayList<>();
+            List<String> all = new ArrayList<>();
             if (data != null) for (JsonElement e : data) {
-                if (e.isJsonObject()) {
-                    String id = e.getAsJsonObject().has("id")
-                            ? e.getAsJsonObject().get("id").getAsString() : "";
-                    if (!id.isEmpty()) out.add(id);
-                }
+                if (!e.isJsonObject()) continue;
+                JsonObject m = e.getAsJsonObject();
+                String id = m.has("id") ? m.get("id").getAsString() : "";
+                if (id.isEmpty()) continue;
+
+                // OpenRouter's /models catalog is intentionally huge (400+ entries).
+                // JARVIS is a chat/agent client, so hide media/embedding/reranker
+                // entries that cannot be used by the normal chat endpoint.
+                if (isOpenRouterBase(url) && !isChatModel(m, id)) continue;
+                all.add(id);
             }
-            if (out.isEmpty()) throw new IOException("Provider tidak mengembalikan daftar model.");
-            return out;
+            if (all.isEmpty()) throw new IOException("Provider tidak mengembalikan model chat yang kompatibel.");
+
+            if (isOpenRouterBase(url)) {
+                // Keep the UI compact: show a useful shortlist instead of hundreds
+                // of entries. The picker is searchable and the currently selected
+                // model is always re-added by SettingsActivity when necessary.
+                Collections.sort(all, (a,b) -> {
+                    int af = a.endsWith(":free") ? 0 : 1;
+                    int bf = b.endsWith(":free") ? 0 : 1;
+                    if (af != bf) return Integer.compare(af,bf);
+                    return a.compareToIgnoreCase(b);
+                });
+                if (all.size() > 60) all = new ArrayList<>(all.subList(0,60));
+            }
+            return all;
         }
+    }
+
+    private boolean isOpenRouterBase(String url) {
+        return url != null && url.toLowerCase().contains("openrouter.ai");
+    }
+
+    private boolean isChatModel(JsonObject m, String id) {
+        String lower = id.toLowerCase();
+        String[] blocked = {"embedding", "rerank", "moderation", "whisper", "tts",
+                "speech", "audio", "image", "vision-edit", "video", "veo", "sora"};
+        for (String token : blocked) if (lower.contains(token)) return false;
+
+        // Prefer the structured modality metadata when OpenRouter supplies it.
+        if (m.has("architecture") && m.get("architecture").isJsonObject()) {
+            JsonObject a = m.getAsJsonObject("architecture");
+            if (a.has("output_modalities") && a.get("output_modalities").isJsonArray()) {
+                boolean text = false;
+                for (JsonElement x : a.getAsJsonArray("output_modalities"))
+                    if ("text".equalsIgnoreCase(x.getAsString())) text = true;
+                if (!text) return false;
+            }
+        }
+        return true;
     }
 
     private List<String> fetchGeminiModels() throws Exception {

@@ -6,7 +6,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.text.InputType;
 import android.widget.*;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -47,6 +46,7 @@ public class SettingsActivity extends AppCompatActivity {
     private TextView apiStatus, modelStatus;
     private SwitchMaterial speak, fallback, bio, calendar, root, telegramOn;
     private ArrayAdapter<String> modelAdapter;
+    private final List<String> availableModels = new ArrayList<>();
 
     @Override protected void onCreate(Bundle b) {
         super.onCreate(b);
@@ -66,13 +66,28 @@ public class SettingsActivity extends AppCompatActivity {
         ghToken=findViewById(R.id.etGithubToken); ghRepo=findViewById(R.id.etGithubRepo);
         ghBranch=findViewById(R.id.etGithubBranch);
 
+        url.setKeyListener(null);
+        url.setFocusable(false);
+        url.setClickable(false);
+
         modelAdapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, new ArrayList<>());
         model.setAdapter(modelAdapter);
         model.setThreshold(0);
+        // Model is selected from the provider catalog, not typed manually.
+        model.setKeyListener(null);
+        model.setOnClickListener(v -> showModelPicker());
+        model.setOnItemClickListener((a,v,pos,id) -> {
+            if (pos >= 0 && pos < modelAdapter.getCount()) {
+                model.setText(modelAdapter.getItem(pos), false);
+                persistSelectedModel();
+            }
+        });
 
         ArrayAdapter<String> pa = new ArrayAdapter<>(this,
                 android.R.layout.simple_dropdown_item_1line, profileNames());
         profile.setAdapter(pa);
+        profile.setKeyListener(null);
+        profile.setOnClickListener(v -> profile.showDropDown());
         profile.setOnItemClickListener((a,v,pos,id)->{
             List<ProviderProfileStore.Profile> all=store.all();
             if(pos>=0 && pos<all.size()) loadProfile(all.get(pos));
@@ -80,6 +95,7 @@ public class SettingsActivity extends AppCompatActivity {
 
         provider.setAdapter(new ArrayAdapter<>(this,
                 android.R.layout.simple_dropdown_item_1line, PROVIDERS));
+        provider.setKeyListener(null);
         provider.setOnItemClickListener((a,v,pos,id)->selectProvider(pos));
         provider.setOnClickListener(v->provider.showDropDown());
 
@@ -90,6 +106,7 @@ public class SettingsActivity extends AppCompatActivity {
             key.setSelection(key.length());
         });
         findViewById(R.id.btnLoadModels).setOnClickListener(v->discoverModels());
+        findViewById(R.id.btnChooseModel).setOnClickListener(v->showModelPicker());
         findViewById(R.id.btnSaveProfile).setOnClickListener(v->{saveProfile();});
         findViewById(R.id.btnNewProfile).setOnClickListener(v->newProfile());
         findViewById(R.id.btnDeleteProfile).setOnClickListener(v->deleteProfile());
@@ -98,7 +115,7 @@ public class SettingsActivity extends AppCompatActivity {
 
         findViewById(R.id.btnAppAccess).setOnClickListener(v->startActivity(new Intent(this,AppAccessActivity.class)));
         findViewById(R.id.btnSave).setOnClickListener(v->saveAll());
-        telegramOn.setOnCheckedChangeListener((buttonView,checked)->{
+        telegramOn.setOnCheckedChangeListener((b,checked)->{
             Intent i=new Intent(this,com.hermes.jarvis.service.TelegramAgentService.class);
             if(checked) startForegroundService(i); else stopService(i);
         });
@@ -133,35 +150,84 @@ public class SettingsActivity extends AppCompatActivity {
 
     private void loadProfile(ProviderProfileStore.Profile x){
         if(x==null)return;
-        profile.setTag(x.id); name.setText(x.name); provider.setText(x.provider,false);
-        url.setText(UniversalProvider.normalizeBaseUrl(x.baseUrl));
-        model.setText(x.model); key.setText(store.key(x));
+        // Repair old/corrupt profiles where the profile name said OpenRouter but
+        // the provider field still pointed at Gemini (the bug visible in v2.8).
+        String fixedProvider = canonicalProvider(x.provider, x.name);
+        x.provider = fixedProvider;
+        profile.setTag(x.id); name.setText(x.name); provider.setText(fixedProvider,false);
+        String fixedBase = providerBaseUrl(fixedProvider);
+        String savedBase = UniversalProvider.normalizeBaseUrl(x.baseUrl);
+        if (!fixedBase.isEmpty() && !"Custom API (OpenAI-compatible)".equals(fixedProvider)) {
+            x.baseUrl = fixedBase;
+            url.setText(fixedBase);
+        } else {
+            url.setText(savedBase);
+        }
+        boolean custom = "Custom API (OpenAI-compatible)".equals(fixedProvider);
+        url.setKeyListener(custom ? android.text.method.TextKeyListener.getInstance() : null);
+        url.setFocusable(custom);
+        url.setClickable(custom);
+        model.setText(x.model, false); key.setText(store.key(x));
         store.active(x.id);
-        modelAdapter.clear();
-        if(!x.model.isEmpty()) modelAdapter.add(x.model);
-        modelAdapter.notifyDataSetChanged();
+        // Persist the repaired provider/base URL immediately so MainActivity and
+        // the API client cannot keep using the stale Gemini profile.
+        store.upsert(x, store.key(x));
+        availableModels.clear();
+        if(!x.model.isEmpty()) availableModels.add(x.model);
+        refreshModelAdapter();
         refreshStatus();
     }
 
     private void selectProvider(int pos){
         if(pos<0||pos>=PROVIDERS.length)return;
-        provider.setText(PROVIDERS[pos],false);
+        String selected = PROVIDERS[pos];
+        provider.setText(selected,false);
         String base=BASE_URLS[pos];
-        if(!base.isEmpty()) url.setText(base);
-        if(DEFAULT_MODELS[pos].isEmpty()) model.setText("");
-        else model.setText(DEFAULT_MODELS[pos]);
-        modelAdapter.clear();
-        if(!DEFAULT_MODELS[pos].isEmpty()) modelAdapter.add(DEFAULT_MODELS[pos]);
-        modelAdapter.notifyDataSetChanged();
-        if("Custom API (OpenAI-compatible)".equals(PROVIDERS[pos]))
-            Toast.makeText(this,"🔧 Custom API aktif. Isi Base URL + API key.",Toast.LENGTH_SHORT).show();
+        boolean custom = "Custom API (OpenAI-compatible)".equals(selected);
+        if(!base.isEmpty()) { url.setText(base); }
+        else if (url.getText().toString().trim().isEmpty()) { url.setText(""); }
+        url.setKeyListener(custom ? android.text.method.TextKeyListener.getInstance() : null);
+        url.setFocusable(custom);
+        url.setClickable(custom);
+
+        // Never keep a model from another provider. It is the main reason
+        // profiles appeared to "jump back" to Gemini.
+        model.setText("", false);
+        availableModels.clear();
+        refreshModelAdapter();
+        modelStatus.setText("○ Provider berubah · tekan MUAT MODEL");
         refreshStatus();
+
+        // If a key is already present, immediately refresh the catalog.
+        if(!UniversalProvider.sanitizeApiKey(key.getText().toString()).isEmpty()) {
+            discoverModels();
+        }
+    }
+
+    private String canonicalProvider(String raw, String profileName) {
+        String s = raw == null ? "" : raw.trim().toLowerCase();
+        String n = profileName == null ? "" : profileName.trim().toLowerCase();
+        if (s.contains("openrouter") || n.equals("openrouter")) return "OpenRouter";
+        if (s.contains("gemini") || n.equals("gemini") || n.contains("google gemini")) return "Google Gemini";
+        if (s.equals("groq") || n.equals("groq")) return "Groq";
+        if (s.contains("openai") || n.equals("openai")) return "OpenAI";
+        if (s.contains("deepseek") || n.equals("deepseek")) return "DeepSeek";
+        if (s.contains("ollama") || n.equals("ollama")) return "Ollama (lokal)";
+        if (s.contains("custom")) return "Custom API (OpenAI-compatible)";
+        return raw == null || raw.trim().isEmpty() ? "Custom API (OpenAI-compatible)" : raw.trim();
+    }
+
+    private String providerBaseUrl(String providerName) {
+        for (int i=0;i<PROVIDERS.length;i++) if(PROVIDERS[i].equals(providerName)) return BASE_URLS[i];
+        return "";
     }
 
     private void newProfile(){
         profile.setTag(null); name.setText("New AI Profile"); provider.setText(PROVIDERS[0],false);
         url.setText(BASE_URLS[0]); model.setText(DEFAULT_MODELS[0]); key.setText("");
-        modelAdapter.clear(); modelAdapter.add(DEFAULT_MODELS[0]); modelAdapter.notifyDataSetChanged();
+        availableModels.clear();
+        if(!DEFAULT_MODELS[0].isEmpty()) availableModels.add(DEFAULT_MODELS[0]);
+        refreshModelAdapter();
         apiStatus.setText("● Profil baru — belum diuji"); apiStatus.setTextColor(getColor(R.color.text_dim));
     }
 
@@ -189,8 +255,10 @@ public class SettingsActivity extends AppCompatActivity {
         if(x==null)x=new ProviderProfileStore.Profile();
         x.name=name.getText().toString().trim();
         if(x.name.isEmpty())x.name="AI Profile";
-        x.provider=provider.getText().toString().trim();
-        x.baseUrl=UniversalProvider.normalizeBaseUrl(url.getText().toString());
+        x.provider=canonicalProvider(provider.getText().toString(), x.name);
+        String automaticBase = providerBaseUrl(x.provider);
+        x.baseUrl = !automaticBase.isEmpty() ? automaticBase : UniversalProvider.normalizeBaseUrl(url.getText().toString());
+        if (!automaticBase.isEmpty()) url.setText(automaticBase);
         x.model=model.getText().toString().trim();
         String clean=UniversalProvider.sanitizeApiKey(key.getText().toString());
         if(x.baseUrl.isEmpty()){apiStatus.setText("❌ Base URL wajib diisi");return;}
@@ -215,22 +283,82 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     private void discoverModels(){
+        // Save the CURRENT visible fields first. Do not reuse the old active profile.
         saveProfile();
         UniversalProvider p=new UniversalProvider(new PrefsManager(this));
-        modelStatus.setText("⏳ Memuat model dari provider...");
+        modelStatus.setText("⏳ Memuat model yang kompatibel...");
         p.discoverModels(new UniversalProvider.ModelsCallback(){
             @Override public void onModels(List<String> models){
                 runOnUiThread(()->{
-                    modelAdapter.clear(); modelAdapter.addAll(models); modelAdapter.notifyDataSetChanged();
-                    modelStatus.setText("✓ "+models.size()+" model tersedia · ketuk field untuk memilih");
-                    model.setAdapter(modelAdapter);
-                    model.showDropDown();
+                    availableModels.clear();
+                    availableModels.addAll(models);
+                    refreshModelAdapter();
+                    modelStatus.setText("✓ "+models.size()+" model kompatibel · tekan PILIH MODEL");
+                    if (models.size() == 1) {
+                        model.setText(models.get(0), false);
+                        persistSelectedModel();
+                    }
                 });
             }
             @Override public void onError(String e){
                 runOnUiThread(()->modelStatus.setText("❌ "+e));
             }
         });
+    }
+
+    private void refreshModelAdapter(){
+        modelAdapter.clear();
+        modelAdapter.addAll(availableModels);
+        modelAdapter.notifyDataSetChanged();
+        model.setAdapter(modelAdapter);
+    }
+
+    private void persistSelectedModel(){
+        String selected = model.getText().toString().trim();
+        if(selected.isEmpty()) return;
+        ProviderProfileStore.Profile x = store.active();
+        if(x != null){
+            x.model = selected;
+            store.upsert(x, store.key(x));
+        }
+        modelStatus.setText("✓ Model aktif: " + selected);
+    }
+
+    private void showModelPicker(){
+        if(availableModels.isEmpty()){
+            discoverModels();
+            Toast.makeText(this,"Memuat katalog model dulu...",Toast.LENGTH_SHORT).show();
+            return;
+        }
+        final EditText search = new EditText(this);
+        search.setHint("Cari model…");
+        search.setSingleLine(true);
+        search.setPadding(28,8,28,8);
+        final ListView list = new ListView(this);
+        final ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, new ArrayList<>(availableModels));
+        list.setAdapter(adapter);
+        LinearLayout box = new LinearLayout(this);
+        box.setOrientation(LinearLayout.VERTICAL);
+        box.setPadding(18,0,18,0);
+        box.addView(search, new LinearLayout.LayoutParams(-1,56));
+        box.addView(list, new LinearLayout.LayoutParams(-1,0,1));
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setTitle("PILIH MODEL · " + availableModels.size())
+                .setView(box).setNegativeButton("BATAL",null).create();
+        list.setOnItemClickListener((parent, view, position, id) -> {
+            String selected = adapter.getItem(position);
+            if(selected != null){ model.setText(selected,false); persistSelectedModel(); }
+            dialog.dismiss();
+        });
+        search.addTextChangedListener(new android.text.TextWatcher(){
+            public void beforeTextChanged(CharSequence s,int st,int c,int a){}
+            public void onTextChanged(CharSequence s,int st,int before,int count){
+                adapter.getFilter().filter(s);
+            }
+            public void afterTextChanged(android.text.Editable e){}
+        });
+        dialog.show();
+        search.requestFocus();
     }
 
     private void refreshStatus(){
