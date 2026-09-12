@@ -107,6 +107,20 @@ public class MainActivity extends AppCompatActivity {
         digitalEarth = findViewById(R.id.digitalEarth);
         tvStatus.setOnClickListener(v -> showProfiles());
 
+        // Master UI bottom navigation — keeps the original feature activities intact.
+        findViewById(R.id.navHome).setOnClickListener(v -> { rv.scrollToPosition(Math.max(0, adapter.getItemCount()-1)); });
+        findViewById(R.id.navImage).setOnClickListener(v -> startActivity(new Intent(this, ImageGenerationActivity.class)));
+        findViewById(R.id.navDashboard).setOnClickListener(v -> startActivity(new Intent(this, DashboardActivity.class)));
+        findViewById(R.id.navVision).setOnClickListener(v -> startActivity(new Intent(this, CameraVisionActivity.class)));
+        findViewById(R.id.navSkills).setOnClickListener(v -> startActivity(new Intent(this, SkillsActivity.class)));
+        findViewById(R.id.navSettings).setOnClickListener(v -> startActivity(new Intent(this, SettingsActivity.class)));
+        findViewById(R.id.coreState).setOnClickListener(v -> {
+            prefs.agentMode(!prefs.agentMode());
+            updateModeButton();
+            updateStatus();
+            Toast.makeText(this, prefs.agentMode() ? "⚡ Agent mode aktif" : "💬 Chat mode aktif", Toast.LENGTH_SHORT).show();
+        });
+
         findViewById(R.id.quickDashboard).setOnClickListener(v -> startActivity(new Intent(this, DashboardActivity.class)));
         findViewById(R.id.quickVision).setOnClickListener(v -> startActivity(new Intent(this, CameraVisionActivity.class)));
         findViewById(R.id.quickSkills).setOnClickListener(v -> startActivity(new Intent(this, SkillsActivity.class)));
