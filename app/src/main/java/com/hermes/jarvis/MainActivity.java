@@ -555,8 +555,7 @@ public class MainActivity extends AppCompatActivity {
     private void runWebTools(AIResponse resp, String userText, int depth) {
         WebSearchManager web = new WebSearchManager(this);
         new Thread(() -> {
-            StringBuilder feedback = new StringBuilder("[WEB TOOLS RESULT]
-");
+            StringBuilder feedback = new StringBuilder("[WEB TOOLS RESULT]\n");
             try {
                 for (String q : resp.webSearches) {
                     stats.incSearch();
