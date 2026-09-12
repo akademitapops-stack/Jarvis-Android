@@ -16,12 +16,14 @@ jobs:
           java-version: '17'
       - uses: android-actions/setup-android@v3
       - name: Install Android SDK 34
+      - name: Check SDK
+        run: ls -l $ANDROID_SDK_ROOT/platforms/android-34 2>/dev/null || echo "SDK 34 MISSING"
         run: sdkmanager "platforms;android-34" "build-tools;34.0.0"
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.5'
       - name: Build debug APK
-        run: gradle :app:assembleDebug --no-daemon --stacktrace --console=plain
+        run: gradle :app:assembleDebug --no-daemon --stacktrace --info --stacktrace --console=plain
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
