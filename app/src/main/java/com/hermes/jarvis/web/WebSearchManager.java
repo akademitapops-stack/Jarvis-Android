@@ -89,3 +89,4 @@ public final class WebSearchManager {
     private static String extractText(String html){String s=html.replaceAll("(?is)<(script|style|noscript|svg)[^>]*>.*?</\\1>"," ").replaceAll("(?is)<br\\s*/?>","\\n").replaceAll("(?is)</(p|div|li|h1|h2|h3|article|section)>","\\n").replaceAll("(?is)<[^>]+>"," ").replace("&nbsp;"," ").replace("&amp;","&").replace("&quot;","\"").replace("&#39;","'").replace("&lt;","<").replace("&gt;",">");s=s.replaceAll("[ \\t]+"," ").replaceAll("\\n{3,}","\\n\\n").trim();return s.length()>12000?s.substring(0,12000)+"\\n[…dipotong…]":s;}
     private static String body(Response r)throws IOException{return r.body()==null?"":r.body().string();}
 }
+"
