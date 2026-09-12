@@ -224,7 +224,7 @@ public class MainActivity extends AppCompatActivity {
                 + "╚═══════════════════════════════╝\n\n"
                 + "Root: " + (terminal.hasRoot() ? "✅ YA" : "❌ TIDAK") + "\n"
                 + "Provider: " + prefs.providerName() + "\n" +
-                + "Memori: " + memory.size() + " fakta\n\n"
+                "Memori: " + memory.size() + " fakta\n\n"
                 + "Coba:\n"
                 + "  \"telpon Budi\" (kontak)\n"
                 + "  \"laporan pagi jam 7\" (auto-report)\n"
