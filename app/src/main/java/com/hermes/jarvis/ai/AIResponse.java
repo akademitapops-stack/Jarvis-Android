@@ -33,4 +33,18 @@ public class AIResponse {
     public String raw = "";
     public String model = "";
     public long timeMs = 0;
+    public boolean hasActions() {
+        return (commands != null && !commands.isEmpty())
+                || (deviceActions != null && !deviceActions.isEmpty())
+                || (webSearches != null && !webSearches.isEmpty())
+                || (newsSearches != null && !newsSearches.isEmpty())
+                || (imageSearches != null && !imageSearches.isEmpty())
+                || (webOpens != null && !webOpens.isEmpty())
+                || weatherLocation != null || autoCreate != null || autoDeleteName != null
+                || scheduleMessage != null || replyPackage != null || callContact != null
+                || contactSearch != null || githubList != null || useTool != null
+                || createToolName != null || calendarTitle != null || reportDisable
+                || reportHour >= 0;
+    }
+
 }

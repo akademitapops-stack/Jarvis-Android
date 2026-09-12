@@ -1,4 +1,4 @@
-name: Build JARVIS v2.7 WEB+
+name: Build JARVIS v2.8 TITAN+
 on:
   push:
     branches: [ main ]
@@ -23,5 +23,5 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: JARVIS-v2.7-WEB-PLUS-APK
+          name: JARVIS-v2.8-TITAN-PLUS-APK
           path: app/build/outputs/apk/debug/*.apk

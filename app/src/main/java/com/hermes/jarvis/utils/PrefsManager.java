@@ -10,18 +10,19 @@ public class PrefsManager {
     private final ProviderProfileStore profiles;
     private final com.hermes.jarvis.core.SecretStore secrets;
     public PrefsManager(Context c) { p=c.getSharedPreferences("jarvis_prefs",Context.MODE_PRIVATE); profiles=new ProviderProfileStore(c); secrets=new com.hermes.jarvis.core.SecretStore(c); migrateLegacy(); }
-    private void migrateLegacy(){String old=p.getString("api_key",""); if(!old.isEmpty()){ProviderProfileStore.Profile x=profiles.active(); if(x!=null && profiles.key(x).isEmpty()){x.baseUrl=p.getString("base_url",x.baseUrl);x.model=p.getString("model",x.model);profiles.upsert(x,UniversalProvider.sanitizeApiKey(old));}}}
+    private void migrateLegacy(){String old=p.getString("api_key",""); if(!old.isEmpty()){ProviderProfileStore.Profile x=profiles.active(); if(x!=null && profiles.key(x).isEmpty()){x.baseUrl=UniversalProvider.normalizeBaseUrl(p.getString("base_url",x.baseUrl));x.model=p.getString("model",x.model);profiles.upsert(x,UniversalProvider.sanitizeApiKey(old));}}}
     private ProviderProfileStore.Profile active(){ return profiles.active(); }
     public String apiKey(){ ProviderProfileStore.Profile x=active(); return x==null?"":profiles.key(x); }
     public void apiKey(String v){ ProviderProfileStore.Profile x=active(); if(x!=null){ profiles.upsert(x, UniversalProvider.sanitizeApiKey(v)); } else p.edit().putString("api_key",UniversalProvider.sanitizeApiKey(v)).apply(); }
-    public String baseUrl(){ ProviderProfileStore.Profile x=active(); return x!=null?x.baseUrl:p.getString("base_url","https://api.groq.com/openai/v1/chat/completions"); }
-    public void baseUrl(String v){ ProviderProfileStore.Profile x=active(); if(x!=null){x.baseUrl=v;profiles.upsert(x,apiKey());}else p.edit().putString("base_url",v).apply(); }
+    public String baseUrl(){ ProviderProfileStore.Profile x=active(); return x!=null?UniversalProvider.normalizeBaseUrl(x.baseUrl):UniversalProvider.normalizeBaseUrl(p.getString("base_url","https://api.groq.com/openai/v1")); }
+    public void baseUrl(String v){ ProviderProfileStore.Profile x=active(); if(x!=null){x.baseUrl=UniversalProvider.normalizeBaseUrl(v);profiles.upsert(x,apiKey());}else p.edit().putString("base_url",UniversalProvider.normalizeBaseUrl(v)).apply(); }
     public String model(){ ProviderProfileStore.Profile x=active(); return x!=null?x.model:p.getString("model","llama-3.3-70b-versatile"); }
     public void model(String v){ ProviderProfileStore.Profile x=active(); if(x!=null){x.model=v;profiles.upsert(x,apiKey());}else p.edit().putString("model",v).apply(); }
     public String providerName(){ProviderProfileStore.Profile x=active();return x==null?"Custom":x.name;}
     public ProviderProfileStore profileStore(){return profiles;}
     public boolean autoSpeak(){return p.getBoolean("auto_speak",true);} public void autoSpeak(boolean v){p.edit().putBoolean("auto_speak",v).apply();}
     public boolean fallbackOffline(){return p.getBoolean("fallback",true);} public void fallbackOffline(boolean v){p.edit().putBoolean("fallback",v).apply();}
+    public boolean agentMode(){return p.getBoolean("agent_mode",true);} public void agentMode(boolean v){p.edit().putBoolean("agent_mode",v).apply();}
     public boolean biometricLock(){return p.getBoolean("bio_lock",false);} public void biometricLock(boolean v){p.edit().putBoolean("bio_lock",v).apply();}
     public int historyLimit(){return p.getInt("hist_limit",8);}
     public void telegramToken(String v){secrets.put("tg_token",v==null?"":v.trim());} public String telegramToken(){return secrets.get("tg_token");}

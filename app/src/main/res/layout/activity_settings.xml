@@ -1,8 +1,211 @@
-<?xml version="1.0" encoding="utf-8"?><ScrollView xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:background="@color/bg_dark"><LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="18dp"><TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="JARVIS / CONTROL CENTER" android:textColor="@color/white" android:textSize="25sp" android:textStyle="bold"/><TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Profiles, agent identity, tools, integrations" android:textColor="@color/text_dim" android:layout_marginTop="4dp"/>
-<TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="AI PROFILES" android:textColor="@color/white" android:textStyle="bold" android:layout_marginTop="22dp"/><AutoCompleteTextView android:id="@+id/spProfile" android:layout_width="match_parent" android:layout_height="52dp" android:hint="Pilih profile tersimpan" android:textColor="@color/white" android:textColorHint="@color/text_dim" android:background="@drawable/bg_input" android:padding="12dp"/><EditText android:id="@+id/etProfileName" android:layout_width="match_parent" android:layout_height="52dp" android:hint="Nama profile (contoh: OpenRouter · Claude)" android:textColor="@color/white" android:textColorHint="@color/text_dim" android:background="@drawable/bg_input" android:padding="12dp" android:layout_marginTop="8dp"/><AutoCompleteTextView android:id="@+id/spPreset" android:layout_width="match_parent" android:layout_height="52dp" android:hint="Provider / native preset" android:textColor="@color/white" android:textColorHint="@color/text_dim" android:background="@drawable/bg_input" android:padding="12dp" android:layout_marginTop="8dp"/><EditText android:id="@+id/etKey" android:layout_width="match_parent" android:layout_height="52dp" android:hint="API key — disimpan aman di Android Keystore" android:inputType="textPassword" android:textColor="@color/white" android:textColorHint="@color/text_dim" android:background="@drawable/bg_input" android:padding="12dp" android:layout_marginTop="8dp"/><EditText android:id="@+id/etUrl" android:layout_width="match_parent" android:layout_height="52dp" android:hint="Base URL" android:inputType="textUri" android:textColor="@color/white" android:textColorHint="@color/text_dim" android:background="@drawable/bg_input" android:padding="12dp" android:layout_marginTop="8dp"/><AutoCompleteTextView android:id="@+id/etModel" android:layout_width="match_parent" android:layout_height="52dp" android:hint="Model" android:textColor="@color/white" android:textColorHint="@color/text_dim" android:background="@drawable/bg_input" android:padding="12dp" android:layout_marginTop="8dp"/><LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal"><Button android:id="@+id/btnSaveProfile" android:layout_width="0dp" android:layout_height="48dp" android:layout_weight="1" android:text="💾 Save Profile"/><Button android:id="@+id/btnNewProfile" android:layout_width="0dp" android:layout_height="48dp" android:layout_weight="1" android:text="＋ New"/><Button android:id="@+id/btnDeleteProfile" android:layout_width="0dp" android:layout_height="48dp" android:layout_weight="1" android:text="🗑 Delete"/></LinearLayout><Button android:id="@+id/btnTest" android:layout_width="match_parent" android:layout_height="48dp" android:text="⚡ TEST ACTIVE PROFILE"/>
-<TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="AGENT WORKSPACE" android:textColor="@color/white" android:textStyle="bold" android:layout_marginTop="22dp"/><Button android:id="@+id/btnPersona" android:layout_width="match_parent" android:layout_height="48dp" android:text="🧠 Edit memory.md / soul.md / rules.md"/><Button android:id="@+id/btnTools" android:layout_width="match_parent" android:layout_height="48dp" android:text="🧩 Tool Builder"/><Button android:id="@+id/btnWebTools" android:layout_width="match_parent" android:layout_height="48dp" android:text="🌐 Web Tools — Search / News / Images / Scrape"/><Button android:id="@+id/btnAppAccess" android:layout_width="match_parent" android:layout_height="48dp" android:text="📱 App Access — daftar &amp; izin per aplikasi"/><Button android:id="@+id/btnAccessibility" android:layout_width="match_parent" android:layout_height="48dp" android:text="🖱️ Enable UI Control (Accessibility)"/><com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/swRoot" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="👑 Allow root-agent mode (device must actually be rooted)" android:textColor="@color/white"/>
-<com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/swSpeak" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="🔊 Auto voice" android:textColor="@color/white"/><com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/swFallback" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="📴 Offline fallback" android:textColor="@color/white"/><com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/swBio" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="🔐 Biometric lock" android:textColor="@color/white"/><com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/swCalendar" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="📅 Calendar integration" android:textColor="@color/white"/>
-<TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="TELEGRAM" android:textColor="@color/white" android:textStyle="bold" android:layout_marginTop="22dp"/><com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/swTelegram" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Telegram" android:textColor="@color/white"/><EditText android:id="@+id/etTelegramToken" android:layout_width="match_parent" android:layout_height="50dp" android:hint="Bot token" android:inputType="textPassword" android:textColor="@color/white" android:background="@drawable/bg_input" android:padding="12dp"/><EditText android:id="@+id/etTelegramAllow" android:layout_width="match_parent" android:layout_height="50dp" android:hint="Allowlist chat IDs" android:textColor="@color/white" android:background="@drawable/bg_input" android:padding="12dp"/>
-<TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="WHATSAPP / BAILEYS BRIDGE" android:textColor="@color/white" android:textStyle="bold" android:layout_marginTop="18dp"/><EditText android:id="@+id/etWhatsappBridge" android:layout_width="match_parent" android:layout_height="50dp" android:hint="Bridge URL (Node + Baileys)" android:inputType="textUri" android:textColor="@color/white" android:background="@drawable/bg_input" android:padding="12dp"/><EditText android:id="@+id/etWhatsappPhone" android:layout_width="match_parent" android:layout_height="50dp" android:hint="Nomor WhatsApp untuk pairing" android:textColor="@color/white" android:background="@drawable/bg_input" android:padding="12dp"/><Button android:id="@+id/btnPairWa" android:layout_width="match_parent" android:layout_height="48dp" android:text="🔗 REQUEST PAIRING CODE"/>
-<TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="GITHUB" android:textColor="@color/white" android:textStyle="bold" android:layout_marginTop="18dp"/><EditText android:id="@+id/etGithubToken" android:layout_width="match_parent" android:layout_height="50dp" android:hint="GitHub token" android:inputType="textPassword" android:textColor="@color/white" android:background="@drawable/bg_input" android:padding="12dp"/><EditText android:id="@+id/etGithubRepo" android:layout_width="match_parent" android:layout_height="50dp" android:hint="owner/repo" android:textColor="@color/white" android:background="@drawable/bg_input" android:padding="12dp"/><EditText android:id="@+id/etGithubBranch" android:layout_width="match_parent" android:layout_height="50dp" android:hint="branch (main)" android:textColor="@color/white" android:background="@drawable/bg_input" android:padding="12dp"/><Button android:id="@+id/btnGithub" android:layout_width="match_parent" android:layout_height="48dp" android:text="🐙 Open GitHub Workspace"/>
-<Button android:id="@+id/btnSave" android:layout_width="match_parent" android:layout_height="54dp" android:text="SAVE ALL SETTINGS" android:layout_marginTop="22dp"/></LinearLayout></ScrollView>
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:background="@color/bg_dark" android:fillViewport="true">
+<LinearLayout
+    android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:orientation="vertical" android:padding="16dp">
+
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:text="J.A.R.V.I.S. / CONTROL CENTER" android:textColor="@color/white"
+        android:textSize="24sp" android:textStyle="bold"/>
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:text="AI, agent, tools &amp; integrations" android:textColor="@color/text_dim"
+        android:layout_marginTop="3dp"/>
+
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:layout_marginTop="16dp" app:cardBackgroundColor="@color/surface"
+        app:strokeColor="@color/surface2" app:cardCornerRadius="16dp">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical" android:padding="14dp">
+
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="🤖 AI PROVIDER" android:textColor="@color/white"
+                android:textStyle="bold" android:textSize="16sp"/>
+
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Pilih provider. Base URL akan disesuaikan otomatis."
+                android:textColor="@color/text_dim" android:layout_marginTop="3dp"/>
+
+            <AutoCompleteTextView android:id="@+id/spProfile"
+                android:layout_width="match_parent" android:layout_height="50dp"
+                android:hint="Profile tersimpan" android:textColor="@color/white"
+                android:textColorHint="@color/text_dim" android:background="@drawable/bg_input"
+                android:padding="12dp" android:layout_marginTop="10dp"/>
+
+            <EditText android:id="@+id/etProfileName"
+                android:layout_width="match_parent" android:layout_height="50dp"
+                android:hint="Nama profile" android:textColor="@color/white"
+                android:textColorHint="@color/text_dim" android:background="@drawable/bg_input"
+                android:padding="12dp" android:layout_marginTop="7dp"/>
+
+            <AutoCompleteTextView android:id="@+id/spPreset"
+                android:layout_width="match_parent" android:layout_height="50dp"
+                android:hint="Provider" android:textColor="@color/white"
+                android:textColorHint="@color/text_dim" android:background="@drawable/bg_input"
+                android:padding="12dp" android:layout_marginTop="7dp"/>
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:layout_marginTop="7dp">
+                <EditText android:id="@+id/etKey" android:layout_width="0dp"
+                    android:layout_height="50dp" android:layout_weight="1"
+                    android:hint="API key" android:inputType="textPassword"
+                    android:textColor="@color/white" android:textColorHint="@color/text_dim"
+                    android:background="@drawable/bg_input" android:padding="12dp"/>
+                <Button android:id="@+id/btnPasteKey" android:layout_width="54dp"
+                    android:layout_height="50dp" android:text="📋" android:minWidth="0dp"
+                    android:layout_marginStart="5dp"/>
+                <Button android:id="@+id/btnToggleKey" android:layout_width="54dp"
+                    android:layout_height="50dp" android:text="👁" android:minWidth="0dp"
+                    android:layout_marginStart="4dp"/>
+            </LinearLayout>
+            <TextView android:id="@+id/tvApiStatus" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:text="● API key belum diisi"
+                android:textColor="@color/text_dim" android:textSize="12sp"
+                android:layout_marginTop="5dp"/>
+
+            <EditText android:id="@+id/etUrl" android:layout_width="match_parent"
+                android:layout_height="50dp" android:hint="Base URL (tanpa /chat/completions)"
+                android:inputType="textUri" android:textColor="@color/white"
+                android:textColorHint="@color/text_dim" android:background="@drawable/bg_input"
+                android:padding="12dp" android:layout_marginTop="7dp"/>
+
+            <AutoCompleteTextView android:id="@+id/etModel"
+                android:layout_width="match_parent" android:layout_height="50dp"
+                android:hint="Model — tekan MUAT MODEL" android:textColor="@color/white"
+                android:textColorHint="@color/text_dim" android:background="@drawable/bg_input"
+                android:padding="12dp" android:layout_marginTop="7dp"/>
+            <TextView android:id="@+id/tvModelStatus" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:text="○ Belum ada model"
+                android:textColor="@color/text_dim" android:textSize="12sp"
+                android:layout_marginTop="5dp"/>
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:layout_marginTop="8dp">
+                <Button android:id="@+id/btnLoadModels" android:layout_width="0dp"
+                    android:layout_height="48dp" android:layout_weight="1"
+                    android:text="🔄 MUAT MODEL"/>
+                <Button android:id="@+id/btnCustomApi" android:layout_width="0dp"
+                    android:layout_height="48dp" android:layout_weight="1"
+                    android:text="🔧 CUSTOM API" android:layout_marginStart="6dp"/>
+            </LinearLayout>
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:layout_marginTop="6dp">
+                <Button android:id="@+id/btnSaveProfile" android:layout_width="0dp"
+                    android:layout_height="46dp" android:layout_weight="1" android:text="💾 SIMPAN"/>
+                <Button android:id="@+id/btnNewProfile" android:layout_width="0dp"
+                    android:layout_height="46dp" android:layout_weight="1" android:text="＋ BARU"
+                    android:layout_marginStart="5dp"/>
+                <Button android:id="@+id/btnDeleteProfile" android:layout_width="0dp"
+                    android:layout_height="46dp" android:layout_weight="1" android:text="🗑 HAPUS"
+                    android:layout_marginStart="5dp"/>
+            </LinearLayout>
+
+            <Button android:id="@+id/btnTest" android:layout_width="match_parent"
+                android:layout_height="50dp" android:text="⚡ TEST API + LOAD MODELS"
+                android:layout_marginTop="7dp"/>
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:layout_marginTop="12dp" app:cardBackgroundColor="@color/surface"
+        app:strokeColor="@color/surface2" app:cardCornerRadius="16dp">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical" android:padding="14dp">
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="⚡ AGENT WORKSPACE" android:textColor="@color/white"
+                android:textStyle="bold" android:textSize="16sp"/>
+            <Button android:id="@+id/btnPersona" android:layout_width="match_parent"
+                android:layout_height="46dp" android:text="🧠 Memory / Soul / Rules"/>
+            <Button android:id="@+id/btnTools" android:layout_width="match_parent"
+                android:layout_height="46dp" android:text="🧩 Tool Builder"/>
+            <Button android:id="@+id/btnWebTools" android:layout_width="match_parent"
+                android:layout_height="46dp" android:text="🌐 Web Tools"/>
+            <Button android:id="@+id/btnAppAccess" android:layout_width="match_parent"
+                android:layout_height="46dp" android:text="📱 App Access &amp; Permissions"/>
+            <Button android:id="@+id/btnAccessibility" android:layout_width="match_parent"
+                android:layout_height="46dp" android:text="🖱️ UI Control (Accessibility)"/>
+            <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/swRoot"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="👑 Root-agent mode" android:textColor="@color/white"/>
+            <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/swSpeak"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="🔊 Auto voice" android:textColor="@color/white"/>
+            <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/swFallback"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="📴 Offline fallback" android:textColor="@color/white"/>
+            <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/swBio"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="🔐 Biometric lock" android:textColor="@color/white"/>
+            <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/swCalendar"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="📅 Calendar integration" android:textColor="@color/white"/>
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:layout_marginTop="12dp" app:cardBackgroundColor="@color/surface"
+        app:strokeColor="@color/surface2" app:cardCornerRadius="16dp">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical" android:padding="14dp">
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="📡 INTEGRATIONS" android:textColor="@color/white"
+                android:textStyle="bold" android:textSize="16sp"/>
+            <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/swTelegram"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Telegram Agent" android:textColor="@color/white"/>
+            <EditText android:id="@+id/etTelegramToken" android:layout_width="match_parent"
+                android:layout_height="48dp" android:hint="Telegram bot token"
+                android:inputType="textPassword" android:textColor="@color/white"
+                android:textColorHint="@color/text_dim" android:background="@drawable/bg_input"
+                android:padding="12dp"/>
+            <EditText android:id="@+id/etTelegramAllow" android:layout_width="match_parent"
+                android:layout_height="48dp" android:hint="Allowlist chat IDs"
+                android:textColor="@color/white" android:textColorHint="@color/text_dim"
+                android:background="@drawable/bg_input" android:padding="12dp"
+                android:layout_marginTop="5dp"/>
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="WhatsApp / Baileys" android:textColor="@color/text_dim"
+                android:layout_marginTop="12dp"/>
+            <EditText android:id="@+id/etWhatsappBridge" android:layout_width="match_parent"
+                android:layout_height="48dp" android:hint="Bridge URL"
+                android:inputType="textUri" android:textColor="@color/white"
+                android:textColorHint="@color/text_dim" android:background="@drawable/bg_input"
+                android:padding="12dp"/>
+            <EditText android:id="@+id/etWhatsappPhone" android:layout_width="match_parent"
+                android:layout_height="48dp" android:hint="Nomor WhatsApp untuk pairing"
+                android:textColor="@color/white" android:textColorHint="@color/text_dim"
+                android:background="@drawable/bg_input" android:padding="12dp"
+                android:layout_marginTop="5dp"/>
+            <Button android:id="@+id/btnPairWa" android:layout_width="match_parent"
+                android:layout_height="46dp" android:text="🔗 REQUEST PAIRING CODE"/>
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="GitHub" android:textColor="@color/text_dim"
+                android:layout_marginTop="12dp"/>
+            <EditText android:id="@+id/etGithubToken" android:layout_width="match_parent"
+                android:layout_height="48dp" android:hint="GitHub token" android:inputType="textPassword"
+                android:textColor="@color/white" android:textColorHint="@color/text_dim"
+                android:background="@drawable/bg_input" android:padding="12dp"/>
+            <EditText android:id="@+id/etGithubRepo" android:layout_width="match_parent"
+                android:layout_height="48dp" android:hint="owner/repo" android:textColor="@color/white"
+                android:textColorHint="@color/text_dim" android:background="@drawable/bg_input"
+                android:padding="12dp" android:layout_marginTop="5dp"/>
+            <EditText android:id="@+id/etGithubBranch" android:layout_width="match_parent"
+                android:layout_height="48dp" android:hint="branch (main)" android:textColor="@color/white"
+                android:textColorHint="@color/text_dim" android:background="@drawable/bg_input"
+                android:padding="12dp" android:layout_marginTop="5dp"/>
+            <Button android:id="@+id/btnGithub" android:layout_width="match_parent"
+                android:layout_height="46dp" android:text="🐙 GitHub Workspace"/>
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <Button android:id="@+id/btnSave" android:layout_width="match_parent"
+        android:layout_height="54dp" android:text="✓ SIMPAN SEMUA SETTINGS"
+        android:layout_marginTop="14dp" android:layout_marginBottom="16dp"/>
+</LinearLayout>
+</ScrollView>

@@ -4,4 +4,4 @@
     android:notificationTimeout="100"
     android:canRetrieveWindowContent="true"
     android:canPerformGestures="true"
-    android:description="@string/accessibility_service_description" />
+    android:description="JARVIS UI Control — tap, type, back, home and scroll" />

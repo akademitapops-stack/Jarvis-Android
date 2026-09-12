@@ -23,7 +23,10 @@ public class AIManager {
     public void send(String userMessage,String terminalFeedback,Callback cb){
         if(!provider.isConfigured()){cb.onError("API belum dikonfigurasi! Pilih profile AI dan simpan API key.");return;}
         String full=terminalFeedback==null?userMessage:userMessage+"\n\n"+terminalFeedback;
-        String sys=SystemPrompt.build(ContextEngine.build(appContext),memory.dumpForPrompt(),persona.prompt(),customTools.prompt());
+        String sys=SystemPrompt.build(ContextEngine.build(appContext),memory.dumpForPrompt(),persona.prompt(),customTools.prompt())
+                + (prefs.agentMode()
+                ? "\n\nMODE: AGENT. Kamu boleh mengusulkan tool/action sesuai skill dan tunggu feedback hasil eksekusi."
+                : "\n\nMODE: CHAT. Jawab percakapan biasa. JANGAN meminta atau mengusulkan tool, shell command, automation, device action, web action, atau perubahan data.");
         List<String[]> recent=recentHistory();
         provider.send(sys,recent,full,new UniversalProvider.Callback(){
             @Override public void onResponse(AIResponse r){history.add(new String[]{"user",full});history.add(new String[]{"assistant",r.raw});sessions.add("user",full);sessions.add("assistant",r.raw);trim();cb.onResponse(r);}

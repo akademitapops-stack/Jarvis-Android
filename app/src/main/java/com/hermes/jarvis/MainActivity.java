@@ -92,7 +92,7 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setTitle("J.A.R.V.I.S.");
-            getSupportActionBar().setSubtitle("Hermes Agent Core v2.7 WEB+");
+            getSupportActionBar().setSubtitle("Hermes Agent Core v2.8 TITAN");
         }
 
         rv = findViewById(R.id.rvChat);
@@ -111,6 +111,11 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.quickSessions).setOnClickListener(v -> showSessions());
         findViewById(R.id.quickImage).setOnClickListener(v -> startActivity(new Intent(this, ImageGenerationActivity.class)));
         findViewById(R.id.quickWeb).setOnClickListener(v -> startActivity(new Intent(this, WebToolsActivity.class)));
+        findViewById(R.id.btnMode).setOnClickListener(v -> {
+            prefs.agentMode(!prefs.agentMode());
+            updateModeButton();
+            Toast.makeText(this, prefs.agentMode() ? "⚡ Agent mode aktif" : "💬 Chat mode aktif", Toast.LENGTH_SHORT).show();
+        });
 
         prefs = new PrefsManager(this);
         terminal = TerminalExecutor.get();
@@ -155,6 +160,7 @@ public class MainActivity extends AppCompatActivity {
         requestPerms();
         restoreOrWelcome();
         updateStatus();
+        updateModeButton();
         handleTrigger(getIntent());
 
         if (prefs.biometricLock() && BiometricGate.available(this)) {
@@ -214,7 +220,7 @@ public class MainActivity extends AppCompatActivity {
         adapter.add(new Message(
                 "╔═══════════════════════════════╗\n"
                 + "║   🤖 J.A.R.V.I.S. ONLINE      ║\n"
-                + "║   Hermes Agent Core v2.7 WEB+      ║\n"
+                + "║   Hermes Agent Core v2.8 TITAN      ║\n"
                 + "╚═══════════════════════════════╝\n\n"
                 + "Root: " + (terminal.hasRoot() ? "✅ YA" : "❌ TIDAK") + "\n"
                 + "Model: " + prefs.model() + "\n"
@@ -228,18 +234,26 @@ public class MainActivity extends AppCompatActivity {
 
         if (!ai.isConfigured()) {
             adapter.add(new Message(
-                    "⚠️ API belum diisi! ⚙️ Settings → preset Groq/Gemini → API key.",
+                    "⚠️ API belum siap. ⚙️ AI → pilih provider → paste API key → TEST API + LOAD MODELS.",
                     Message.ERROR));
         }
     }
 
     private void updateStatus() {
         String s = (terminal.hasRoot() ? "● ROOT" : "● USER")
+                + " | " + prefs.providerName()
                 + " | " + prefs.model()
+                + " | " + (prefs.agentMode() ? "⚡ AGENT" : "💬 CHAT")
                 + (ai.isConfigured() ? "" : " | ⚠️ NO KEY");
         tvStatus.setText(s);
         tvStatus.setTextColor(ContextCompat.getColor(this,
                 terminal.hasRoot() ? R.color.green : R.color.orange));
+    }
+
+    private void updateModeButton() {
+        android.view.View v=findViewById(R.id.btnMode);
+        if(v instanceof com.google.android.material.button.MaterialButton)
+            ((com.google.android.material.button.MaterialButton)v).setText(prefs.agentMode() ? "⚡ Agent" : "💬 Chat");
     }
 
     private void send() {
@@ -284,6 +298,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void handleAIResponse(AIResponse resp, String userText, int depth) {
+        if (!prefs.agentMode() && resp.hasActions()) {
+            adapter.add(new Message("💬 Chat mode: aksi/tool dinonaktifkan. Aktifkan ⚡ Agent jika ingin JARVIS menjalankan tugas.", Message.INFO));
+            finishTurn();
+            return;
+        }
         if (resp.message != null && !resp.message.isEmpty()) {
             adapter.add(new Message(resp.message, Message.BOT));
         }

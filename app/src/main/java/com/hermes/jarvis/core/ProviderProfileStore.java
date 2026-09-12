@@ -38,16 +38,17 @@ public class ProviderProfileStore {
         try { profiles = gson.fromJson(p.getString("profiles", "[]"), new TypeToken<List<Profile>>(){}.getType()); }
         catch (Exception e) { profiles = new ArrayList<>(); }
         if (profiles == null) profiles = new ArrayList<>();
+        for (Profile x : profiles) if (x != null) x.baseUrl = UniversalProvider.normalizeBaseUrl(x.baseUrl);
     }
     private void save() { p.edit().putString("profiles", gson.toJson(profiles)).apply(); }
 
     private void seedDefaults() {
-        add("Groq", "Groq", "https://api.groq.com/openai/v1/chat/completions", "llama-3.3-70b-versatile", "");
-        add("Gemini", "Google Gemini", "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", "gemini-2.5-flash", "");
-        add("OpenRouter", "OpenRouter", "https://openrouter.ai/api/v1/chat/completions", "google/gemini-2.5-flash", "");
-        add("OpenAI", "OpenAI", "https://api.openai.com/v1/chat/completions", "gpt-4o-mini", "");
-        add("DeepSeek", "DeepSeek", "https://api.deepseek.com/chat/completions", "deepseek-chat", "");
-        add("Ollama", "Ollama (lokal)", "http://127.0.0.1:11434/v1/chat/completions", "llama3.2", "");
+        add("Groq", "Groq", "https://api.groq.com/openai/v1", "llama-3.3-70b-versatile", "");
+        add("Gemini", "Google Gemini", "https://generativelanguage.googleapis.com/v1beta/openai", "gemini-2.5-flash", "");
+        add("OpenRouter", "OpenRouter", "https://openrouter.ai/api/v1", "google/gemini-2.5-flash", "");
+        add("OpenAI", "OpenAI", "https://api.openai.com/v1", "gpt-4o-mini", "");
+        add("DeepSeek", "DeepSeek", "https://api.deepseek.com", "deepseek-chat", "");
+        add("Ollama", "Ollama (lokal)", "http://127.0.0.1:11434/v1", "llama3.2", "");
         save();
         if (!profiles.isEmpty()) active(profiles.get(0).id);
     }
@@ -76,6 +77,6 @@ public class ProviderProfileStore {
         if (profiles.size()>0 && active()==null) active(profiles.get(0).id);
     }
     public void add(String name,String provider,String url,String model,String key) {
-        Profile x = new Profile(); x.name=name; x.provider=provider; x.baseUrl=url; x.model=model; upsert(x,key);
+        Profile x = new Profile(); x.name=name; x.provider=provider; x.baseUrl=UniversalProvider.normalizeBaseUrl(url); x.model=model; upsert(x,key);
     }
 }
