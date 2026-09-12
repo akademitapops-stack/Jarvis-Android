@@ -60,4 +60,10 @@ public class PrefsManager {
     public void calendarEnabled(boolean v){p.edit().putBoolean("calendar",v).apply();} public boolean calendarEnabled(){return p.getBoolean("calendar",false);}
     public void rootAgent(boolean v){p.edit().putBoolean("root_agent",v).apply();} public boolean rootAgent(){return p.getBoolean("root_agent",false);}
     public int nextAlarmId(){int i=p.getInt("alarm_id",1);p.edit().putInt("alarm_id",i+1).apply();return i;}
+
+    public boolean isConfigured() {
+        String apiKey = apiKey();
+        String baseUrl = baseUrl();
+        return apiKey != null && !apiKey.trim().isEmpty() && baseUrl != null && !baseUrl.trim().isEmpty();
+    }
 }
