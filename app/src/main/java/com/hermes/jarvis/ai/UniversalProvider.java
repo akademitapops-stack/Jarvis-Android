@@ -102,6 +102,7 @@ public class UniversalProvider {
     }
 
     /** Normalize any legacy/full endpoint into a provider BASE URL. */
+    public static String sanitizeApiKey(String k){ if(k==null) return ""; String s=k.trim(); s=s.replaceAll("\\p{Cn}\\p{Co}\\p{Cs}",""); s=s.replaceAll("\\s+"," "); return s.trim(); }
     public static String normalizeBaseUrl(String raw) {
         String s = cleanUrl(raw);
         if (s.isEmpty()) return "";

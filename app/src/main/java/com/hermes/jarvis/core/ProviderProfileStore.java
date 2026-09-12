@@ -13,6 +13,8 @@ import java.util.UUID;
 
 /** Persistent multi-provider vault. API keys are encrypted with Android Keystore. */
 public class ProviderProfileStore {
+    public static String canonicalProvider(String p){ String l=p==null?"":p.toLowerCase().trim(); if(l.contains("gemini")||l.contains("google")) return "Google Gemini"; if(l.contains("openrouter")) return "OpenRouter"; if(l.contains("groq")) return "Groq"; if(l.contains("openai")&&!l.contains("openrouter")) return "OpenAI"; if(l.contains("deepseek")) return "DeepSeek"; if(l.contains("ollama")) return "Ollama"; return p==null?"":p.trim();}
+
     public static class Profile {
         public String id = UUID.randomUUID().toString();
         public String name = "New profile";
